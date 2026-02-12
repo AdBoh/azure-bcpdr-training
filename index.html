@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Azure BCP & DR — Training Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06090f;
+    --surface: #0d1421;
+    --surface2: #111c2e;
+    --surface3: #162238;
+    --border: #1e3050;
+    --accent: #00c4ff;
+    --accent2: #0077ff;
+    --accent3: #ff5f3d;
+    --gold: #ffbe0b;
+    --green: #00e5a0;
+    --text: #e2eaf5;
+    --text-dim: #8faabe;
+    --text-muted: #4a6280;
+    --glow: 0 0 30px rgba(0,196,255,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── BACKGROUND GRID ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,196,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,196,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(6,9,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+  }
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-brand span { color: var(--text-dim); font-weight: 400; font-size: 12px; }
+  .nav-tabs {
+    display: flex; gap: 4px;
+  }
+  .nav-tab {
+    padding: 6px 14px; border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer; border: none; background: none;
+    transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--accent); background: rgba(0,196,255,0.08); border: 1px solid rgba(0,196,255,0.2); }
+  .progress-bar {
+    position: fixed; top: 60px; left: 0; right: 0; z-index: 99;
+    height: 2px; background: var(--border);
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 80px 0 60px; min-height: 100vh; position: relative; z-index: 1; }
+  .page.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+
+  /* ── HERO HEADER ── */
+  .page-hero {
+    padding: 40px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .phase-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 12px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  .badge-blue { background: rgba(0,196,255,0.1); color: var(--accent); border: 1px solid rgba(0,196,255,0.3); }
+  .badge-orange { background: rgba(255,95,61,0.1); color: var(--accent3); border: 1px solid rgba(255,95,61,0.3); }
+  .badge-green { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
+  .badge-gold { background: rgba(255,190,11,0.1); color: var(--gold); border: 1px solid rgba(255,190,11,0.3); }
+  .page-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.15; margin-bottom: 14px;
+    color: var(--text);
+  }
+  .page-title em { font-style: normal; color: var(--accent); }
+  .page-subtitle { color: var(--text-dim); font-size: 15px; max-width: 680px; line-height: 1.7; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 52px; }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px;
+    color: var(--text); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { border-color: rgba(0,196,255,0.25); box-shadow: var(--glow); }
+  .card-grid { display: grid; gap: 16px; }
+  .card-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .card-grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    color: var(--text); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-body { color: var(--text-dim); font-size: 13.5px; line-height: 1.65; }
+
+  /* ── KEY METRICS ── */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .metric {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+    text-align: center;
+  }
+  .metric-val {
+    font-family: 'IBM Plex Mono', monospace; font-weight: 500;
+    font-size: 28px; color: var(--accent); line-height: 1;
+    margin-bottom: 6px;
+  }
+  .metric-val.orange { color: var(--accent3); }
+  .metric-val.green { color: var(--green); }
+  .metric-val.gold { color: var(--gold); }
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(180deg, var(--accent2), var(--border), transparent);
+  }
+  .tl-item { position: relative; margin-bottom: 28px; }
+  .tl-dot {
+    position: absolute; left: -24px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--bg);
+    box-shadow: 0 0 8px rgba(0,196,255,0.5);
+  }
+  .tl-item.orange .tl-dot { background: var(--accent3); box-shadow: 0 0 8px rgba(255,95,61,0.5); }
+  .tl-item.green .tl-dot { background: var(--green); box-shadow: 0 0 8px rgba(0,229,160,0.5); }
+  .tl-item.gold .tl-dot { background: var(--gold); box-shadow: 0 0 8px rgba(255,190,11,0.5); }
+  .tl-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .tl-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 6px; }
+  .tl-body { color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #050810; border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; margin: 16px 0;
+  }
+  .code-header {
+    background: var(--surface2); padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+  .code-file { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .code-body { padding: 16px; overflow-x: auto; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #a8d4ff; line-height: 1.7; white-space: pre; display: block; }
+  .kw { color: #ff79c6; } .str { color: #50fa7b; } .cmt { color: #6272a4; }
+  .var { color: #ffb86c; } .fn { color: #8be9fd; } .num { color: #bd93f9; }
+
+  /* ── TABLE ── */
+  .table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--surface2); padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 10px 14px; font-size: 13px; color: var(--text-dim); border-bottom: 1px solid rgba(30,48,80,0.5); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td.accent { color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  td.green { color: var(--green); }
+  td.orange { color: var(--accent3); }
+  td.gold { color: var(--gold); }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 8px; padding: 16px 18px; margin: 16px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+    font-size: 13.5px; line-height: 1.6;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-info { background: rgba(0,196,255,0.07); border: 1px solid rgba(0,196,255,0.2); color: var(--text-dim); }
+  .callout-warn { background: rgba(255,190,11,0.07); border: 1px solid rgba(255,190,11,0.2); color: var(--text-dim); }
+  .callout-danger { background: rgba(255,95,61,0.07); border: 1px solid rgba(255,95,61,0.2); color: var(--text-dim); }
+  .callout-success { background: rgba(0,229,160,0.07); border: 1px solid rgba(0,229,160,0.2); color: var(--text-dim); }
+
+  /* ── STEPS ── */
+  .steps { counter-reset: steps; }
+  .step {
+    display: flex; gap: 16px; margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0; width: 32px; height: 32px;
+    border-radius: 8px; background: var(--surface2);
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    font-weight: 500; color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .step-body { color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+
+  /* ── ACCORDION ── */
+  .accordion-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .accordion-header {
+    padding: 14px 18px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface); transition: background 0.2s;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; color: var(--text);
+  }
+  .accordion-header:hover { background: var(--surface2); }
+  .accordion-header.open { background: var(--surface2); color: var(--accent); }
+  .accordion-arrow { transition: transform 0.2s; font-size: 12px; color: var(--text-muted); }
+  .accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+  .accordion-body { display: none; padding: 0 18px 18px; background: var(--surface2); color: var(--text-dim); font-size: 13.5px; line-height: 1.7; }
+  .accordion-body.open { display: block; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid rgba(30,48,80,0.4);
+    font-size: 13.5px; color: var(--text-dim); line-height: 1.5;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--green); flex-shrink: 0; margin-top: 2px; }
+  .check-icon.warn { color: var(--gold); }
+  .check-icon.danger { color: var(--accent3); }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--text-dim);
+    overflow-x: auto;
+  }
+  .arch-layer {
+    border: 1px dashed var(--border); border-radius: 8px;
+    padding: 16px 20px; margin-bottom: 16px;
+    position: relative;
+  }
+  .arch-layer-label {
+    position: absolute; top: -10px; left: 12px;
+    background: var(--bg); padding: 0 8px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .arch-layer-label.blue { color: var(--accent); }
+  .arch-layer-label.orange { color: var(--accent3); }
+  .arch-layer-label.green { color: var(--green); }
+  .arch-layer-label.gold { color: var(--gold); }
+  .arch-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+  .arch-box {
+    padding: 8px 14px; border-radius: 6px;
+    font-size: 11px; white-space: nowrap;
+  }
+  .ab-blue { background: rgba(0,196,255,0.1); border: 1px solid rgba(0,196,255,0.3); color: var(--accent); }
+  .ab-orange { background: rgba(255,95,61,0.1); border: 1px solid rgba(255,95,61,0.3); color: var(--accent3); }
+  .ab-green { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3); color: var(--green); }
+  .ab-gold { background: rgba(255,190,11,0.1); border: 1px solid rgba(255,190,11,0.3); color: var(--gold); }
+  .ab-gray { background: rgba(143,170,190,0.07); border: 1px solid rgba(143,170,190,0.2); color: var(--text-dim); }
+  .arch-arrow { text-align: center; color: var(--text-muted); font-size: 18px; margin: -4px 0; }
+
+  /* ── LANDING PAGE ── */
+  .landing-hero {
+    text-align: center; padding: 80px 0 60px;
+    position: relative;
+  }
+  .landing-hero::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(0,120,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .landing-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--accent); margin-bottom: 20px;
+  }
+  .landing-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 5vw, 60px); line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .landing-title .line2 { color: var(--accent); }
+  .landing-desc {
+    color: var(--text-dim); font-size: 16px; max-width: 580px;
+    margin: 0 auto 40px; line-height: 1.7;
+  }
+  .module-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 48px; }
+  .module-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 20px;
+    cursor: pointer; transition: all 0.25s;
+    text-align: left; position: relative; overflow: hidden;
+  }
+  .module-card::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-accent, var(--accent));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .module-card:hover { border-color: rgba(0,196,255,0.3); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+  .module-card:hover::before { transform: scaleX(1); }
+  .module-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .module-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); margin-bottom: 8px; }
+  .module-desc { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; margin-bottom: 16px; }
+  .module-cta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--card-accent, var(--accent)); display: flex; align-items: center; gap: 6px; }
+
+  /* ── QUIZ ── */
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+  .quiz-q { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); margin-bottom: 20px; }
+  .quiz-options { display: grid; gap: 10px; }
+  .quiz-opt {
+    padding: 12px 16px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text-dim); font-size: 13.5px; transition: all 0.2s;
+    text-align: left;
+  }
+  .quiz-opt:hover { border-color: rgba(0,196,255,0.3); color: var(--text); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(0,229,160,0.07); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--accent3); background: rgba(255,95,61,0.07); color: var(--accent3); }
+  .quiz-feedback { margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 13.5px; display: none; }
+  .quiz-next { display: none; margin-top: 16px; padding: 10px 20px; border-radius: 8px; background: var(--accent2); color: white; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; }
+  .quiz-score { text-align: center; padding: 28px; display: none; }
+  .score-num { font-family: 'IBM Plex Mono', monospace; font-size: 48px; color: var(--accent); }
+  .score-label { color: var(--text-dim); margin-top: 8px; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; margin: 2px; }
+  .tag-blue { background: rgba(0,196,255,0.1); color: var(--accent); }
+  .tag-orange { background: rgba(255,95,61,0.1); color: var(--accent3); }
+  .tag-green { background: rgba(0,229,160,0.1); color: var(--green); }
+  .tag-gray { background: rgba(143,170,190,0.07); color: var(--text-muted); }
+
+  @media(max-width:768px) {
+    nav { padding: 0 16px; }
+    .container { padding: 0 16px; }
+    .nav-tabs { display: none; }
+    .module-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    ⬡ AZURE BCP/DR <span>Enterprise Training</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Overview</button>
+    <button class="nav-tab" onclick="showPage('policy')">01 Policy</button>
+    <button class="nav-tab" onclick="showPage('architecture')">02 Architecture</button>
+    <button class="nav-tab" onclick="showPage('services')">03 Azure Services</button>
+    <button class="nav-tab" onclick="showPage('automation')">04 Automation</button>
+    <button class="nav-tab" onclick="showPage('drills')">05 Drills</button>
+    <button class="nav-tab" onclick="showPage('projects')">06 Projects</button>
+    <button class="nav-tab" onclick="showPage('quiz')">Assessment</button>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- ════════════════════════════════ HOME ════════════════════════════════ -->
+<div id="page-home" class="page active">
+<div class="container">
+  <div class="landing-hero">
+    <div class="landing-eyebrow">Enterprise Azure · Business Continuity & Disaster Recovery</div>
+    <div class="landing-title">
+      Protect Everything.<br>
+      <span class="line2">Recover Anything.</span>
+    </div>
+    <p class="landing-desc">A complete technical training on designing, deploying, and validating enterprise-grade BCP & DR on Microsoft Azure — from C-suite policy to infrastructure-as-code and live game-day drills.</p>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-val">6</div><div class="metric-label">Learning Modules</div></div>
+    <div class="metric"><div class="metric-val orange">RTO / RPO</div><div class="metric-label">Core Objectives</div></div>
+    <div class="metric"><div class="metric-val green">Active–Active</div><div class="metric-label">Highest Tier Pattern</div></div>
+    <div class="metric"><div class="metric-val gold">99.999%</div><div class="metric-label">Target SLA</div></div>
+  </div>
+
+  <div class="module-cards">
+    <div class="module-card" style="--card-accent:#00c4ff" onclick="showPage('policy')">
+      <div class="module-num">Module 01</div>
+      <div class="module-name">Policy & Strategy</div>
+      <div class="module-desc">Business impact analysis, RTO/RPO targets, governance frameworks, and regulatory compliance.</div>
+      <div class="module-cta">Start module →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#ff5f3d" onclick="showPage('architecture')">
+      <div class="module-num">Module 02</div>
+      <div class="module-name">Architecture Patterns</div>
+      <div class="module-desc">Paired regions, availability zones, active-active vs active-passive design blueprints.</div>
+      <div class="module-cta">Start module →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#00e5a0" onclick="showPage('services')">
+      <div class="module-num">Module 03</div>
+      <div class="module-name">Azure DR Services</div>
+      <div class="module-desc">ASR, Azure Backup, Traffic Manager, Front Door, Cosmos DB, SQL geo-replication & more.</div>
+      <div class="module-cta">Start module →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#ffbe0b" onclick="showPage('automation')">
+      <div class="module-num">Module 04</div>
+      <div class="module-name">IaC & Automation</div>
+      <div class="module-desc">Bicep/Terraform templates, Azure Policy as guard-rails, runbooks, and failover orchestration.</div>
+      <div class="module-cta">Start module →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#a78bfa" onclick="showPage('drills')">
+      <div class="module-num">Module 05</div>
+      <div class="module-name">Game-Day Drills</div>
+      <div class="module-desc">Chaos engineering, tabletop exercises, failover test procedures, and post-drill reporting.</div>
+      <div class="module-cta">Start module →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#34d399" onclick="showPage('projects')">
+      <div class="module-num">Module 06</div>
+      <div class="module-name">Hands-On Projects</div>
+      <div class="module-desc">5 real-world lab projects: deploy ASR, build failover automation, configure SQL Failover Groups, run Chaos Studio, and build a BCDR dashboard.</div>
+      <div class="module-cta">Start building →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#f472b6" onclick="showPage('quiz')">
+      <div class="module-num">Assessment</div>
+      <div class="module-name">Knowledge Check</div>
+      <div class="module-desc">Test your understanding across all five modules with scenario-based questions.</div>
+      <div class="module-cta">Take the quiz →</div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px;">
+  <div class="section-title">BCP vs DR — What's the Difference?</div>
+  <div class="card-grid card-grid-2">
+    <div class="card">
+      <div class="card-title">🏢 Business Continuity Plan (BCP)</div>
+      <div class="card-body">BCP is the <strong style="color:var(--text)">holistic organisational strategy</strong> ensuring critical business functions continue during and after a disruption. It covers people, process, communication, and technology. BCP asks: <em style="color:var(--accent)">"How do we keep operating?"</em><br><br>Scope extends beyond IT — it includes supply chains, staff relocation, customer communications, regulatory obligations, and alternate operating procedures.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ Disaster Recovery (DR)</div>
+      <div class="card-body">DR is the <strong style="color:var(--text)">technical subset of BCP</strong> focused specifically on restoring IT systems, data, and infrastructure after a failure. DR asks: <em style="color:var(--accent3)">"How do we restore systems?"</em><br><br>On Azure, DR encompasses replication, failover automation, backup/restore, and validation. DR has measurable technical objectives: RTO (Recovery Time Objective) and RPO (Recovery Point Objective).</div>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════ POLICY ════════════════════════════════ -->
+<div id="page-policy" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge badge-blue">⬡ Module 01</div>
+    <div class="page-title">Policy &amp; <em>Strategy</em></div>
+    <p class="page-subtitle">Before a single Azure resource is deployed, your organisation needs a clear written strategy. This module covers the governance, risk, and compliance layer that drives all technical decisions.</p>
+  </div>
+
+  <!-- BIA -->
+  <div class="section">
+    <div class="section-title">1.1 Business Impact Analysis (BIA)</div>
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:20px;line-height:1.7">A BIA identifies and quantifies the impact of disruptions on business functions. It is the foundational document for all RTO/RPO targets and tier classifications.</p>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title">🔍 Step 1: Identify Critical Functions</div>
+        <div class="card-body">Enumerate every business process and the systems that support it. Use workshops with business owners — not just IT. Include revenue impact, regulatory risk, reputational risk, and contractual obligations per hour of downtime.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Step 2: Quantify Impact</div>
+        <div class="card-body">For each function assign: Financial impact (€/hr), Regulatory impact (fines/breaches), Reputational damage (SLA penalties), Operational impact (staff productivity loss). This drives tier classification.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Step 3: Set Objectives</div>
+        <div class="card-body">Translate impact values into time-based objectives. <strong style="color:var(--accent)">RTO</strong>: max acceptable downtime. <strong style="color:var(--accent3)">RPO</strong>: max acceptable data loss. <strong style="color:var(--green)">MTTR</strong>: mean time to recover. <strong style="color:var(--gold)">MTPOD</strong>: max tolerable period of disruption.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIERS -->
+  <div class="section">
+    <div class="section-title">1.2 Workload Tier Classification</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tier</th><th>Name</th><th>RTO</th><th>RPO</th><th>Pattern</th><th>Example Workloads</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">T0</td><td>Mission Critical</td><td class="accent">&lt; 1 min</td><td class="accent">0 sec</td><td>Active–Active</td><td>Core banking, trading platforms, payment gateways</td></tr>
+          <tr><td class="accent">T1</td><td>Business Critical</td><td class="accent">&lt; 15 min</td><td class="accent">&lt; 5 min</td><td>Active–Passive (Warm)</td><td>ERP, CRM, internal portals, authentication</td></tr>
+          <tr><td class="green">T2</td><td>Business Important</td><td class="green">&lt; 4 hr</td><td class="green">&lt; 1 hr</td><td>Pilot Light</td><td>Reporting, analytics, HR systems, dev tooling</td></tr>
+          <tr><td style="color:var(--text-dim)">T3</td><td>Non-Critical</td><td style="color:var(--text-dim)">&lt; 24 hr</td><td style="color:var(--text-dim)">&lt; 4 hr</td><td>Backup &amp; Restore</td><td>Archival, internal wikis, test environments</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span>Every workload must be classified before architecture decisions are made. Designing T1 architecture for a T3 workload wastes budget; designing T3 for a T0 workload is an existential risk.</div>
+  </div>
+
+  <!-- GOVERNANCE -->
+  <div class="section">
+    <div class="section-title">1.3 Governance Framework</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Policy Layer</div>
+        <div class="tl-title">BCDR Policy Document</div>
+        <div class="tl-body">Board-approved policy covering scope, objectives, roles, review cadence, and regulatory obligations. Must reference ISO 22301 (BCMS), NIST SP 800-34, and applicable sector standards (DORA for financial services, NIS2 for critical infrastructure, HIPAA for healthcare).</div>
+      </div>
+      <div class="tl-item orange">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Governance Layer</div>
+        <div class="tl-title">BCDR Steering Committee</div>
+        <div class="tl-body">Executive sponsor (CTO/CRO), BCDR Programme Manager, Business Continuity Manager, Cloud Architect Lead, and representatives from each business unit. Meets quarterly; reviews all test results and approves changes to recovery objectives.</div>
+      </div>
+      <div class="tl-item green">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Operational Layer</div>
+        <div class="tl-title">BCDR Runbooks & SOPs</div>
+        <div class="tl-body">Detailed step-by-step operational procedures for each failure scenario. Runbooks must be stored outside Azure (e.g., printed, SharePoint, Confluence) and accessible when Azure itself is the disaster. Include contact trees, escalation paths, and vendor emergency contacts.</div>
+      </div>
+      <div class="tl-item gold">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Audit Layer</div>
+        <div class="tl-title">Continuous Compliance Monitoring</div>
+        <div class="tl-body">Azure Policy, Microsoft Defender for Cloud, and Azure Compliance Manager continuously assess BCDR posture. Compliance score must be visible to the BCDR Steering Committee at all times via a live dashboard.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLIANCE -->
+  <div class="section">
+    <div class="section-title">1.4 Regulatory & Compliance Alignment</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">🇪🇺 DORA (Digital Operational Resilience Act)</div>
+        <div class="card-body">Effective Jan 2025. Requires EU financial entities to: maintain ICT risk management framework, conduct annual TLPT (Threat-Led Penetration Testing), test DR plans at least annually, and report major ICT incidents within 4 hours (24h for full report). Azure provides <strong style="color:var(--accent)">DORA-aligned controls</strong> across Sentinel, Defender, and Policy.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔒 ISO 22301 (BCMS Standard)</div>
+        <div class="card-body">The international standard for Business Continuity Management Systems. Requires documented BIA, defined BCDR objectives, tested plans, and management review. Azure's compliance offerings include ISO 22301 attestation for in-scope services — use the <strong style="color:var(--accent)">Service Trust Portal</strong> to download audit reports.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏥 HIPAA / HITRUST</div>
+        <div class="card-body">Healthcare workloads must ensure ePHI availability per the HIPAA Security Rule §164.308(a)(7). Requires contingency plan, data backup plan, DR plan, and emergency mode operation procedure. Azure Healthcare APIs and Azure Health Data Services are HIPAA-compliant services.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🌐 NIS2 Directive</div>
+        <div class="card-body">Applies to essential and important entities in the EU. Mandates incident handling, business continuity, supply-chain security, and network security policies. Significant incidents must be reported within 24 hours. Azure's Sentinel SIEM and Defender XDR directly support NIS2 incident response requirements.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ ARCHITECTURE ════════════════════════════════ -->
+<div id="page-architecture" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge badge-orange">⬡ Module 02</div>
+    <div class="page-title">Architecture <em>Patterns</em></div>
+    <p class="page-subtitle">Azure provides a rich set of resiliency primitives. This module covers the canonical DR patterns, how to choose between them, and how they map to Azure's physical infrastructure.</p>
+  </div>
+
+  <!-- AZURE FUNDAMENTALS -->
+  <div class="section">
+    <div class="section-title">2.1 Azure Resiliency Building Blocks</div>
+    <div class="arch-diagram">
+      <div class="arch-layer">
+        <div class="arch-layer-label blue">Global Infrastructure</div>
+        <div class="arch-row">
+          <div class="arch-box ab-blue">60+ Regions Worldwide</div>
+          <div class="arch-box ab-blue">Paired Regions</div>
+          <div class="arch-box ab-blue">Sovereign Clouds</div>
+          <div class="arch-box ab-gray">Edge Locations (CDN)</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-label orange">Region Level</div>
+        <div class="arch-row">
+          <div class="arch-box ab-orange">Availability Zone A</div>
+          <div class="arch-box ab-orange">Availability Zone B</div>
+          <div class="arch-box ab-orange">Availability Zone C</div>
+          <div class="arch-box ab-gray">Zone-redundant Storage</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-label green">Zone Level</div>
+        <div class="arch-row">
+          <div class="arch-box ab-green">Fault Domain 1</div>
+          <div class="arch-box ab-green">Fault Domain 2</div>
+          <div class="arch-box ab-green">Fault Domain 3</div>
+          <div class="arch-box ab-gray">Update Domains</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-label gold">Resource Level</div>
+        <div class="arch-row">
+          <div class="arch-box ab-gold">VMSS w/ Zone Balance</div>
+          <div class="arch-box ab-gold">Zone-Redundant DB</div>
+          <div class="arch-box ab-gold">Geo-Redundant Storage</div>
+          <div class="arch-box ab-gold">Zone-Redundant Gateway</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-info"><span class="callout-icon">ℹ️</span><strong style="color:var(--text)">Paired Regions:</strong> Azure pairs regions within the same geography (e.g., East US ↔ West US, UK South ↔ UK West). Updates are rolled to one region at a time. Data residency is preserved. Use paired regions as your primary DR target for regulatory compliance.</div>
+  </div>
+
+  <!-- PATTERNS -->
+  <div class="section">
+    <div class="section-title">2.2 DR Pattern Decision Framework</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pattern</th><th>RTO</th><th>RPO</th><th>Cost Multiplier</th><th>Complexity</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">Active–Active</td><td class="accent">Seconds</td><td class="accent">~0</td><td class="accent">2–3×</td><td>⬛⬛⬛⬛</td><td>T0 — Mission Critical</td></tr>
+          <tr><td class="accent">Active–Passive (Warm)</td><td class="accent">&lt; 15 min</td><td class="accent">&lt; 5 min</td><td class="accent">1.3–1.8×</td><td>⬛⬛⬛◻</td><td>T1 — Business Critical</td></tr>
+          <tr><td class="green">Pilot Light</td><td class="green">&lt; 1 hr</td><td class="green">&lt; 1 hr</td><td class="green">1.1–1.3×</td><td>⬛⬛◻◻</td><td>T2 — Business Important</td></tr>
+          <tr><td style="color:var(--text-dim)">Backup &amp; Restore</td><td>Hours–Days</td><td>Hours</td><td>1.05–1.1×</td><td>⬛◻◻◻</td><td>T3 — Non-Critical</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-grid card-grid-2" style="margin-top:24px">
+      <div class="card">
+        <div class="card-title" style="color:var(--gold)">⬡ Active–Active</div>
+        <div class="card-body">Both regions serve live traffic simultaneously. Traffic Manager or Azure Front Door with latency-based or weighted routing splits load. No failover needed — the healthy region absorbs all traffic automatically. <br><br><strong style="color:var(--text)">Requirements:</strong> Stateless or globally-replicated state (Cosmos DB multi-master, SQL Hyperscale geo-replica). Session affinity must be handled at the application layer. Conflict resolution strategy required for write-write scenarios.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent)">⬡ Active–Passive (Warm Standby)</div>
+        <div class="card-body">Secondary region is pre-provisioned and running but does not serve traffic. ASR continuously replicates VMs. Databases use synchronous or near-synchronous geo-replication. Failover is triggered manually or via Azure Traffic Manager health probes.<br><br><strong style="color:var(--text)">Key decision:</strong> How warm is warm? Fully scaled standby reduces RTO but increases cost. Use Azure Autoscale in the secondary to scale-out on DR trigger.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--green)">⬡ Pilot Light</div>
+        <div class="card-body">Minimal core infrastructure runs in the secondary region (DNS, identity, minimal compute). Data is replicated but full application stack is not running. On DR trigger, an automated runbook provisions and scales the full environment using IaC.<br><br><strong style="color:var(--text)">Trade-off:</strong> Lower cost than warm standby but longer RTO. Acceptable for T2 workloads with 1–4 hour RTOs. IaC templates must be tested regularly.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⬡ Backup &amp; Restore</div>
+        <div class="card-body">No standby infrastructure. Automated backups (Azure Backup, geo-redundant storage snapshots) are stored in the secondary region. On DR, infrastructure is provisioned from IaC and data is restored from backup.<br><br><strong style="color:var(--text)">Key metric:</strong> RTO is dominated by backup restore time and infrastructure provisioning. Test restore time regularly — do not assume, measure. Use Azure Backup's Cross-Region Restore feature.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGION SELECTION -->
+  <div class="section">
+    <div class="section-title">2.3 Region Selection Strategy</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Start With Azure Paired Regions</div>
+          <div class="step-body">Use Azure's official paired regions as your DR target. Paired regions guarantee that platform updates are not rolled simultaneously, and geo-redundant storage (GRS) always replicates to the paired region. Example: deploy primary in <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:12px">westeurope</code>, DR in <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:12px">northeurope</code>.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Validate Service Availability</div>
+          <div class="step-body">Not all Azure services are available in all regions. Use the <strong style="color:var(--accent)">Azure Products by Region</strong> page to confirm your critical services (ASR, specific VM SKUs, AKS, specific PaaS) are available in your target DR region before committing to a design.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Consider Data Residency &amp; Sovereignty</div>
+          <div class="step-body">For EU data, both primary and DR regions must be within the EU. For UK regulated financial data, use UK South ↔ UK West. For government workloads, consider Azure Government regions which maintain strict data residency guarantees.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Network Latency &amp; Bandwidth</div>
+          <div class="step-body">Replication RPO is directly limited by network throughput between regions. Use the Azure Network Latency Dashboard to validate replication feasibility. For synchronous replication (needed for near-zero RPO), the application must tolerate the added write latency — typically 10–30ms between EU paired regions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NETWORK DR -->
+  <div class="section">
+    <div class="section-title">2.4 Network Architecture for DR</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">🌐 Azure Traffic Manager</div>
+        <div class="card-body">DNS-based global load balancer. Routes to healthy endpoints using: <strong style="color:var(--accent)">Priority</strong> (primary/failover), <strong style="color:var(--accent)">Weighted</strong> (gradual traffic shift), <strong style="color:var(--accent)">Performance</strong> (lowest latency), or <strong style="color:var(--accent)">Geographic</strong> (data sovereignty).<br><br>TTL of 60 seconds is typical. DNS propagation adds to effective RTO — account for this in T1/T2 targets. Use nested profiles for complex topologies.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🚀 Azure Front Door (Premium)</div>
+        <div class="card-body">Anycast-based Layer 7 global load balancer with built-in WAF and CDN. Sub-second failover compared to DNS-based Traffic Manager. Supports HTTP health probes with 5s intervals. Priority-based origin groups enable instant failover without DNS TTL delays.<br><br><strong style="color:var(--text)">Choose Front Door over Traffic Manager</strong> when RTO &lt; 1 minute and Layer 7 routing is required.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔗 ExpressRoute DR Design</div>
+        <div class="card-body">ExpressRoute circuits must themselves be resilient. Design: Primary ExpressRoute circuit in Region A + secondary circuit in Region B (different providers). Add S2S VPN as last-resort fallback. Use ExpressRoute Global Reach for cross-region private connectivity. Azure Route Server enables automatic route propagation changes during failover.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔒 Private Endpoint DR</div>
+        <div class="card-body">Private endpoints are region-specific. In DR failover, private endpoints in the secondary region must already exist and DNS records must resolve correctly. Use <strong style="color:var(--accent)">Azure Private DNS Zones</strong> linked to both region VNETs. Pre-provision secondary private endpoints to avoid RTO delay during failover.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ SERVICES ════════════════════════════════ -->
+<div id="page-services" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge badge-green">⬡ Module 03</div>
+    <div class="page-title">Azure <em>DR Services</em></div>
+    <p class="page-subtitle">Deep-dive into the specific Azure services that power enterprise BCDR — how they work, how to configure them, and how they interact.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.1 Azure Site Recovery (ASR)</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">What is ASR?</div>
+      <div class="card-body">Azure Site Recovery is Azure's primary DR orchestration service. It continuously replicates Azure VMs, on-premises VMware/Hyper-V VMs, and physical servers to a recovery region. ASR coordinates failover, failback, and test failover within a Recovery Services Vault. It provides <strong style="color:var(--accent)">crash-consistent</strong> recovery points every 5 minutes and <strong style="color:var(--accent)">app-consistent</strong> snapshots via VSS every 1–12 hours (configurable).</div>
+    </div>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title">⚙️ Key Configuration Items</div>
+        <div class="card-body">Recovery Services Vault must be in the target DR region. Enable replication per VM via Replication Policy (crash-consistent: 5 min, app-consistent: 60 min, recovery point retention: 24hr). Network mapping between source and target VNETs. Resource group mapping for target resources.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Recovery Plans</div>
+        <div class="card-body">Group VMs into ordered recovery groups (Group 1 = identity/DNS, Group 2 = databases, Group 3 = app servers, Group 4 = web tier). Add manual action steps between groups. Add Azure Automation Runbooks for pre/post-failover scripts. Test failover with an isolated network to avoid production impact.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ RTO/RPO Capabilities</div>
+        <div class="card-body">Azure-to-Azure ASR achieves RPO as low as <strong style="color:var(--accent)">30 seconds</strong> in optimal conditions. RTO depends on VM boot time + application initialisation + Recovery Plan group delays. Typically 15–60 minutes for well-designed Recovery Plans. Track via ASR Replication Health dashboards.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.2 Azure Backup</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Resource Type</th><th>Backup Solution</th><th>Recovery Granularity</th><th>Cross-Region Restore</th><th>Retention Max</th></tr></thead>
+        <tbody>
+          <tr><td class="accent">Azure VMs</td><td>Azure Backup (MARS/Enhanced)</td><td>File, Folder, Full VM</td><td class="green">✓ Supported</td><td>9,999 days</td></tr>
+          <tr><td class="accent">Azure SQL DB</td><td>Automated Backups + LTR</td><td>Point-in-time (5 min)</td><td class="green">✓ Supported</td><td>35 days (LTR: 10 yr)</td></tr>
+          <tr><td class="accent">Azure Files</td><td>Share Snapshots + Backup</td><td>File/Share level</td><td class="green">✓ Supported</td><td>200 snapshots/share</td></tr>
+          <tr><td class="accent">AKS</td><td>Azure Backup for AKS</td><td>Namespace/Cluster</td><td class="green">✓ Supported</td><td>30 days (standard)</td></tr>
+          <tr><td class="accent">Blobs</td><td>PITR + Soft Delete + Versioning</td><td>Container/Object</td><td class="green">✓ GRS</td><td>365 days</td></tr>
+          <tr><td class="accent">Cosmos DB</td><td>Continuous Backup (PITR)</td><td>1-second granularity</td><td class="gold">Via multi-region</td><td>30 days (cont.)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span><strong style="color:var(--gold)">Backup Vault vs Recovery Services Vault:</strong> Use Recovery Services Vaults for VM backup + ASR. Use Backup Vaults for newer workloads (AKS, Blobs, Disks, PostgreSQL). Immutable vaults and soft-delete protect against ransomware — enable these on all vaults. Enable Cross-Region Restore on Recovery Services Vaults (adds ~1.5× cost to backup storage).</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.3 Database DR on Azure</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">🗄️ Azure SQL Database / SQL MI</div>
+        <div class="card-body"><strong style="color:var(--accent)">Active Geo-Replication:</strong> Up to 4 readable secondary replicas in any region. Uses always-on availability groups. Typical RPO: 5 seconds (synchronous not available cross-region, but near-sync async). Failover Groups provide a single endpoint that auto-fails over — zero DNS change required in application connection strings.<br><br><strong style="color:var(--accent)">Auto-Failover Groups:</strong> Configure with a grace period (e.g., 1 hour) to avoid false triggers. Use read-only endpoint for reporting workloads to offload primary.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🌍 Azure Cosmos DB</div>
+        <div class="card-body"><strong style="color:var(--accent)">Multi-Region Writes (Active–Active):</strong> Enable writes in multiple regions simultaneously. Use Strong or Bounded Staleness consistency for financial data. Conflict resolution via last-write-wins or custom conflict resolution policy.<br><br><strong style="color:var(--accent)">Single-Region Write + Multi-Region Read:</strong> Lower cost. RPO = replication lag (typically &lt; 1s). Use service-managed failover or configure manual priority order. Continuous backup (PITR) provides 1-second granularity restore for up to 30 days.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏎️ Azure Cache for Redis</div>
+        <div class="card-body"><strong style="color:var(--accent)">Geo-Replication (Premium):</strong> Active-passive replication to a secondary region. RPO: seconds. On failover, client must update connection string to secondary endpoint — automate with Traffic Manager or application-side retry/reconnect logic.<br><br>Enable Redis persistence (RDB/AOF) for backup. Redis Enterprise tier (active-active) provides zero-RPO with CRDTs for true multi-region writes.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📦 Azure Storage (Blobs/Files/Tables)</div>
+        <div class="card-body"><strong style="color:var(--accent)">RA-GRS / RA-GZRS:</strong> Read-access geo-redundant storage replicates asynchronously to paired region (typically &lt; 15 min lag). RA suffix enables reads from secondary endpoint.<br><br><strong style="color:var(--accent)">GZRS:</strong> Combines zone-redundancy (AZ protection) + geo-replication. Best practice for most enterprise workloads. Storage account failover is customer-initiated (not automatic) — initiate via portal, CLI, or automated runbook. Data loss during failover = replication lag amount.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.4 Compute & Application Layer DR</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">☸️ AKS (Azure Kubernetes Service)</div>
+        <div class="card-body"><strong style="color:var(--text)">Multi-region strategy:</strong> Deploy independent AKS clusters in primary and DR regions. Use Azure Front Door or Traffic Manager for global traffic distribution. Persistent volume data must be replicated separately (Azure Backup for AKS, Velero + Azure Blob, or application-level replication).<br><br>Use Flux or ArgoCD for GitOps — same manifests deploy to both clusters from a single Git source. Node pool autoscaler in DR region starts at minimum nodes (cost saving) and scales on traffic shift.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Azure Functions / App Service</div>
+        <div class="card-body"><strong style="color:var(--text)">Active-Passive:</strong> Deploy identical Function Apps/App Service Plans in both regions. Use deployment slots for zero-downtime updates. Traffic Manager or Front Door routes to healthy region.<br><br><strong style="color:var(--text)">Active-Active:</strong> Stateless functions work well active-active. Ensure durable function state (Storage Account, Cosmos DB) is geo-replicated. Use Azure API Management with multi-region deployment for API gateway DR — APIM Premium supports multi-region with automatic failover.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3.5 Identity & Access in DR Scenarios</div>
+    <div class="callout callout-danger"><span class="callout-icon">🚨</span><strong style="color:var(--accent3)">Critical:</strong> Identity is a dependency for everything. If users cannot authenticate, even a fully functional DR environment is useless. Microsoft Entra ID (Azure AD) is a global service with built-in geo-redundancy — it does not require DR planning. However, AD Domain Controllers on VMs DO require DR consideration.</div>
+    <div class="card-grid card-grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">🆔 Active Directory (IaaS DCs)</div>
+        <div class="card-body">Use ASR to replicate Domain Controller VMs to DR region. Place DCs in Group 1 of Recovery Plans (must recover before application tier). Ensure at minimum 1 DC in each Azure region. FSMO roles should be failover-aware — seize roles post-failover if needed. Consider Read-Only DCs in DR region for minimal-footprint scenarios.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔑 Azure Key Vault DR</div>
+        <div class="card-body">Key Vault contents (keys, secrets, certificates) are automatically replicated to the paired region within the same geography. Soft-delete and purge protection are mandatory — enable on all Key Vaults. During regional failover, the secondary Key Vault endpoint activates automatically. Ensure applications use Key Vault references rather than hardcoded secrets to avoid secret rotation issues during DR.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ AUTOMATION ════════════════════════════════ -->
+<div id="page-automation" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge badge-gold">⬡ Module 04</div>
+    <div class="page-title">IaC &amp; <em>Automation</em></div>
+    <p class="page-subtitle">Manual failover is too slow and error-prone. This module covers Infrastructure as Code for DR environments, Azure Policy guard-rails, and automated failover orchestration.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4.1 IaC Principles for BCDR</div>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title">🔄 Idempotency</div>
+        <div class="card-body">All IaC templates must be safely re-runnable. Running the same Bicep/Terraform template twice should produce the same result without errors. This is critical during DR — automated runbooks will apply templates under stress conditions where partial failures may occur.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📦 Modular Design</div>
+        <div class="card-body">Separate infrastructure into modules: networking, identity, compute, data, and monitoring. DR deployments often need a subset of modules. Parameterise region — the same module deploys to primary or DR by changing a single parameter.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔐 Secrets Management</div>
+        <div class="card-body">Never hardcode secrets in IaC. Use Key Vault references in Bicep/Terraform. During DR, Key Vault is available from the paired region. Store deployment service principal credentials in Key Vault, not in CI/CD pipeline variables.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4.2 Bicep: Multi-Region Deployment Template</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">BICEP</span>
+        <span class="code-file">main-dr.bicep</span>
+      </div>
+      <div class="code-body"><code><span class="cmt">// ── Enterprise DR Deployment Template ──────────────────────────────</span>
+<span class="kw">param</span> <span class="var">primaryRegion</span> <span class="fn">string</span> = <span class="str">'westeurope'</span>
+<span class="kw">param</span> <span class="var">drRegion</span> <span class="fn">string</span> = <span class="str">'northeurope'</span>
+<span class="kw">param</span> <span class="var">environment</span> <span class="fn">string</span>       <span class="cmt">// 'prod' | 'dr-test'</span>
+<span class="kw">param</span> <span class="var">tier</span> <span class="fn">string</span> = <span class="str">'T1'</span>            <span class="cmt">// workload tier</span>
+<span class="kw">param</span> <span class="var">deployToDR</span> <span class="fn">bool</span> = <span class="kw">false</span>
+
+<span class="kw">var</span> <span class="var">targetRegion</span> = deployToDR ? drRegion : primaryRegion
+<span class="kw">var</span> <span class="var">suffix</span> = deployToDR ? <span class="str">'-dr'</span> : <span class="str">'-primary'</span>
+
+<span class="cmt">// Recovery Services Vault (created in DR region)</span>
+<span class="kw">resource</span> <span class="var">rsv</span> <span class="str">'Microsoft.RecoveryServices/vaults@2023-01-01'</span> = {
+  name: <span class="str">'rsv-enterprise${suffix}'</span>
+  location: drRegion
+  sku: { name: <span class="str">'RS0'</span>, tier: <span class="str">'Standard'</span> }
+  properties: {
+    publicNetworkAccess: <span class="str">'Disabled'</span>
+  }
+}
+
+<span class="cmt">// ASR Replication Policy</span>
+<span class="kw">resource</span> <span class="var">replicationPolicy</span> <span class="str">'Microsoft.RecoveryServices/vaults/replicationPolicies@2023-01-01'</span> = {
+  parent: rsv
+  name: <span class="str">'policy-${tier}-replication'</span>
+  properties: {
+    providerSpecificInput: {
+      instanceType: <span class="str">'A2A'</span>
+      crashConsistentFrequencyInMinutes: <span class="num">5</span>
+      recoveryPointHistory: <span class="num">1440</span>          <span class="cmt">// 24 hours</span>
+      appConsistentFrequencyInMinutes: <span class="num">60</span>   <span class="cmt">// 1 hour</span>
+    }
+  }
+}
+
+<span class="cmt">// SQL Failover Group</span>
+<span class="kw">resource</span> <span class="var">sqlServer</span> <span class="str">'Microsoft.Sql/servers@2023-02-01'</span> existing = {
+  name: <span class="str">'sql-enterprise-primary'</span>
+}
+<span class="kw">resource</span> <span class="var">failoverGroup</span> <span class="str">'Microsoft.Sql/servers/failoverGroups@2023-02-01'</span> = {
+  parent: sqlServer
+  name: <span class="str">'fog-enterprise'</span>
+  properties: {
+    readWriteEndpoint: {
+      failoverPolicy: <span class="str">'Automatic'</span>
+      failoverWithDataLossGracePeriodMinutes: <span class="num">60</span>
+    }
+    partnerServers: [{ id: sqlDRServer.id }]
+    databases: [ sqlDb.id ]
+  }
+}
+</code></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4.3 Azure Policy Guard-Rails for BCDR</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">🛡️ Required Policies (Deny Effect)</div>
+        <div class="card-body">
+          <ul style="list-style:none;padding:0">
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Deny VM creation without ASR replication enabled (T0/T1)</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Deny storage accounts without GRS/GZRS redundancy</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Deny SQL databases without Active Geo-Replication</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Deny Key Vault creation without soft-delete &amp; purge protection</li>
+            <li style="padding:6px 0;font-size:13px;color:var(--text-dim)">⬡ Deny Recovery Services Vault without immutability settings</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Required Policies (Audit/DeployIfNotExists)</div>
+        <div class="card-body">
+          <ul style="list-style:none;padding:0">
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Deploy Azure Backup for VMs if not enrolled (DINE)</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Audit: VM backup last recovery point &gt; 24 hours</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Audit: ASR replication health = Healthy</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;color:var(--text-dim)">⬡ Audit: Cosmos DB has multi-region writes enabled (T0)</li>
+            <li style="padding:6px 0;font-size:13px;color:var(--text-dim)">⬡ Deploy: Diagnostic settings to Log Analytics for all resources</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:20px">
+      <div class="code-header">
+        <span class="code-lang">JSON</span>
+        <span class="code-file">policy-require-asr.json</span>
+      </div>
+      <div class="code-body"><code>{
+  <span class="str">"properties"</span>: {
+    <span class="str">"displayName"</span>: <span class="str">"T1 VMs must have ASR replication enabled"</span>,
+    <span class="str">"policyType"</span>: <span class="str">"Custom"</span>,
+    <span class="str">"mode"</span>: <span class="str">"Indexed"</span>,
+    <span class="str">"parameters"</span>: {
+      <span class="str">"tierTag"</span>: { <span class="str">"type"</span>: <span class="str">"String"</span>, <span class="str">"defaultValue"</span>: <span class="str">"T1"</span> }
+    },
+    <span class="str">"policyRule"</span>: {
+      <span class="str">"if"</span>: {
+        <span class="str">"allOf"</span>: [
+          { <span class="str">"field"</span>: <span class="str">"type"</span>, <span class="str">"equals"</span>: <span class="str">"Microsoft.Compute/virtualMachines"</span> },
+          { <span class="str">"field"</span>: <span class="str">"tags['bcdr-tier']"</span>, <span class="str">"equals"</span>: <span class="str">"[parameters('tierTag')]"</span> }
+        ]
+      },
+      <span class="str">"then"</span>: {
+        <span class="str">"effect"</span>: <span class="str">"AuditIfNotExists"</span>,
+        <span class="str">"details"</span>: {
+          <span class="str">"type"</span>: <span class="str">"Microsoft.RecoveryServices/vaults/replicationProtectedItems"</span>,
+          <span class="str">"existenceCondition"</span>: {
+            <span class="str">"field"</span>: <span class="str">"properties.providerSpecificDetails.replicationHealth"</span>,
+            <span class="str">"equals"</span>: <span class="str">"Normal"</span>
+          }
+        }
+      }
+    }
+  }
+}
+</code></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4.4 Automated Failover Orchestration</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Health Detection Layer</div>
+          <div class="step-body">Azure Monitor + Application Insights alert on key SLIs (error rate, latency P99, availability). Alerts trigger Logic Apps or Azure Automation Runbooks. Define specific failure criteria: consecutive failed health probe responses, region-level service health alerts from Azure Service Health, or custom metric thresholds. Avoid false positives — require sustained degradation for &gt; N minutes before triggering automated DR.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Decision &amp; Approval Gate</div>
+          <div class="step-body">For T0/T1 workloads, automated failover should have an approval gate (Azure Logic App with human approval timeout). If approval is not received within X minutes (e.g., 10 min), auto-approve to meet RTO. Log all decisions to immutable audit storage (WORM-locked Azure Blob). For T2/T3, fully automated failover without approval is acceptable.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Failover Execution (Azure Automation Runbook)</div>
+          <div class="step-body">Ordered execution: (1) Trigger ASR Recovery Plan failover, (2) Initiate SQL Failover Group switch, (3) Update Traffic Manager/Front Door weights, (4) Scale out DR compute (VMSS/AKS), (5) Validate application health endpoints, (6) Send incident notification. Each step must have error handling and rollback capability.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Post-Failover Monitoring</div>
+          <div class="step-body">Switch Azure Monitor alerts to point at DR region resources. Notify stakeholders via Teams, PagerDuty, ServiceNow. Begin timer for RTO achievement logging. Initiate root cause investigation process. Begin planning for failback once primary region recovers.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ DRILLS ════════════════════════════════ -->
+<div id="page-drills" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge" style="background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.3)">⬡ Module 05</div>
+    <div class="page-title">Game-Day <em style="color:#a78bfa">Drills</em></div>
+    <p class="page-subtitle">An untested DR plan is just a hypothesis. This module covers how to validate your BCDR posture through structured drills, chaos engineering, and post-drill continuous improvement.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.1 The Testing Pyramid</div>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-title" style="color:#a78bfa">🃏 Tabletop Exercises (Quarterly)</div>
+        <div class="card-body">Discussion-based walkthrough of failure scenarios with key stakeholders. No live systems involved. Cover scenarios: regional outage, ransomware, data corruption, key personnel unavailability. Document gaps and action items. Duration: 2–4 hours. Participants: BCDR steering committee + technical leads.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent)">🧪 Functional Tests (Monthly)</div>
+        <div class="card-body">Test individual BCDR components in isolation. Examples: ASR test failover for specific Recovery Plans, backup restoration of specific databases, DNS failover via Traffic Manager priority change, Key Vault secret retrieval from secondary endpoint. Minimal impact to production — use isolated test networks for ASR test failovers.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent3)">💥 Full DR Drills (Annual minimum)</div>
+        <div class="card-body">Complete failover to DR region with production-like traffic. Involves all teams. Measures actual RTO/RPO against targets. Identifies configuration drift. Required for DORA compliance, ISO 22301 certification, and most enterprise risk frameworks. Duration: half-day to full day. Run on weekends or low-traffic periods.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.2 ASR Test Failover — Step-by-Step</div>
+    <div class="callout callout-success"><span class="callout-icon">✅</span>ASR Test Failover creates clones of your VMs in an <strong style="color:var(--text)">isolated VNET</strong> in the DR region. It does NOT affect replication, does NOT impact production, and does NOT change Traffic Manager routing. This is safe to run at any time.</div>
+    <div class="steps" style="margin-top:20px">
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Pre-Test Checklist</div><div class="step-body">Verify ASR replication health = Normal for all VMs in scope. Confirm latest recovery point age is within RPO target. Confirm test VNET exists in DR region (isolated, no routing to production). Notify change management / inform NOC. Prepare test validation scripts (DB connectivity, app health checks, API smoke tests).</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Initiate Test Failover</div><div class="step-body">Navigate to Recovery Services Vault → Recovery Plans → [Plan Name] → Test Failover. Select recovery point: Latest (lowest RPO) or Latest App-Consistent. Select target VNET: the isolated test VNET. Azure will provision VMs in DR region using the selected recovery point. Monitor the Job progress in the vault's Jobs blade.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Validate DR Environment</div><div class="step-body">Run validation runbook / test scripts against DR VMs (use their private IPs directly in the isolated VNET). Verify: Application starts successfully, Database connections work, Services authenticate correctly, Configuration is correct (connection strings, app settings). Record time from failover initiation to validation complete — this is your measured RTO.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Cleanup Test Failover</div><div class="step-body">Recovery Plans → Cleanup Test Failover. This deletes the test VMs and clears the test failover state. Replication continues unaffected. Document results in the BCDR test register. Raise issues as tickets. Schedule fixes before next test.</div></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.3 Chaos Engineering on Azure</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">⚡ Azure Chaos Studio</div>
+      <div class="card-body">Azure Chaos Studio is Microsoft's managed chaos engineering service. It injects controlled faults into Azure resources to validate resilience. Experiments are defined as JSON, versioned in Git, and can be automated in CI/CD pipelines. Chaos Studio uses <strong style="color:var(--accent)">Agents</strong> (installed on VMs for OS-level faults) and <strong style="color:var(--accent)">Service Faults</strong> (API-based faults for PaaS services, no agent required).</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fault Type</th><th>Target</th><th>What It Tests</th><th>Agent?</th></tr></thead>
+        <tbody>
+          <tr><td class="accent">VM Shutdown</td><td>Azure VM</td><td>ASR failover, Load balancer health probe removal</td><td class="gold">Yes</td></tr>
+          <tr><td class="accent">CPU Pressure</td><td>Azure VM</td><td>Autoscale trigger, alert firing, performance degradation</td><td class="gold">Yes</td></tr>
+          <tr><td class="accent">Network Disconnect</td><td>Azure VM</td><td>Retry logic, circuit breakers, timeout handling</td><td class="gold">Yes</td></tr>
+          <tr><td class="accent">AKS Chaos Mesh</td><td>AKS Pod</td><td>Pod failure, network partition, node failure</td><td class="green">No</td></tr>
+          <tr><td class="accent">App Service Stop</td><td>App Service</td><td>Traffic Manager failover, Front Door routing</td><td class="green">No</td></tr>
+          <tr><td class="accent">Cosmos DB Failover</td><td>Cosmos DB</td><td>Read/write rerouting, application reconnection</td><td class="green">No</td></tr>
+          <tr><td class="accent">NSG Rule Injection</td><td>NSG</td><td>Network path resilience, alternative routing</td><td class="green">No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.4 BCDR Metrics Dashboard</div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-val accent" id="rtoActual">—</div><div class="metric-label">Last Measured RTO</div></div>
+      <div class="metric"><div class="metric-val green" id="rpoActual">—</div><div class="metric-label">Last Measured RPO</div></div>
+      <div class="metric"><div class="metric-val gold" id="drillCount">—</div><div class="metric-label">Drills This Year</div></div>
+      <div class="metric"><div class="metric-val orange" id="openActions">—</div><div class="metric-label">Open DR Actions</div></div>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="simulateDrill()" style="padding:12px 28px;border-radius:8px;background:var(--accent2);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">▶ Simulate Drill Results</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.5 Post-Drill Improvement Cycle</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-title">📋 Post-Drill Report Template</div>
+        <div class="card-body">
+          <strong style="color:var(--text)">Must include:</strong>
+          <ul style="list-style:none;padding:0;margin-top:8px">
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Drill date, scope, participants</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Scenarios tested and outcomes</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Measured RTO vs. target for each workload</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Measured RPO vs. target for each workload</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Issues discovered (P1/P2/P3 classification)</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Action items with owners and due dates</li>
+            <li style="padding:4px 0;font-size:13px;color:var(--text-dim)">📌 Approval sign-off by BCDR Programme Manager</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔄 Continuous Improvement Process</div>
+        <div class="card-body">Issues discovered in drills must enter a formal remediation process. P1 (RTO/RPO breach): fix within 30 days, re-test within 60 days. P2 (process gap): fix within 90 days. P3 (improvement): include in next quarterly cycle.<br><br>Track BCDR maturity using the <strong style="color:var(--accent)">Microsoft Cloud Adoption Framework</strong> resilience maturity model. Target: Level 4 (Optimised) — automated, tested, metrics-driven.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5.6 Failback Procedure</div>
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span>Failback is often harder than failover. Data written to the DR region during the outage must be reconciled with the primary region. Plan failback carefully — do not rush it. The DR region is now production and must be treated as such until failback is complete and validated.</div>
+    <div class="timeline" style="margin-top:20px">
+      <div class="tl-item green">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Phase 1</div>
+        <div class="tl-title">Re-protect Primary Region</div>
+        <div class="tl-body">While running on DR: Repair/restore primary region infrastructure. Re-enable ASR replication from DR back to primary (reverse replication). Allow primary to catch up to DR. Monitor replication health until primary is fully synchronised.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Phase 2</div>
+        <div class="tl-title">Planned Failback</div>
+        <div class="tl-body">Schedule a maintenance window. Execute planned failover back to primary via ASR Recovery Plan (Failover to primary). Switch SQL Failover Group back to primary. Update Traffic Manager/Front Door weights back to primary. This is a planned operation — no data loss expected.</div>
+      </div>
+      <div class="tl-item gold">
+        <div class="tl-dot"></div>
+        <div class="tl-label">Phase 3</div>
+        <div class="tl-title">Validate &amp; Close Incident</div>
+        <div class="tl-body">Validate all application health checks on primary. Re-enable forward replication from primary to DR. Confirm DR region is back in standby state. Close incident. Write post-incident review. Update runbooks with any lessons learned.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ PROJECTS ════════════════════════════════ -->
+<div id="page-projects" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge" style="background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3)">⬡ Module 06</div>
+    <div class="page-title">Hands-On <em style="color:#34d399">Projects</em></div>
+    <p class="page-subtitle">Five real-world lab projects that take you from zero to a fully operational enterprise BCDR environment on Azure. Each project builds on the last — complete them in order for the best learning experience.</p>
+  </div>
+
+  <!-- OVERALL PROGRESS -->
+  <div class="section">
+    <div class="section-title">Lab Progress Tracker</div>
+    <div class="card" style="padding:28px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px">
+        <div id="proj-badge-1" class="proj-badge" onclick="showProject(1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">🏗️</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">Project 1</div>
+          <div style="font-size:11px;color:var(--text-muted)">ASR Setup</div>
+          <div class="proj-status" id="proj-status-1" style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">NOT STARTED</div>
+        </div>
+        <div id="proj-badge-2" class="proj-badge" onclick="showProject(2)" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">🗄️</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">Project 2</div>
+          <div style="font-size:11px;color:var(--text-muted)">SQL Failover Groups</div>
+          <div class="proj-status" id="proj-status-2" style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">NOT STARTED</div>
+        </div>
+        <div id="proj-badge-3" class="proj-badge" onclick="showProject(3)" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">⚡</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">Project 3</div>
+          <div style="font-size:11px;color:var(--text-muted)">Failover Automation</div>
+          <div class="proj-status" id="proj-status-3" style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">NOT STARTED</div>
+        </div>
+        <div id="proj-badge-4" class="proj-badge" onclick="showProject(4)" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">💥</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">Project 4</div>
+          <div style="font-size:11px;color:var(--text-muted)">Chaos Engineering</div>
+          <div class="proj-status" id="proj-status-4" style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">NOT STARTED</div>
+        </div>
+        <div id="proj-badge-5" class="proj-badge" onclick="showProject(5)" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">📊</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">Project 5</div>
+          <div style="font-size:11px;color:var(--text-muted)">BCDR Dashboard</div>
+          <div class="proj-status" id="proj-status-5" style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">NOT STARTED</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div id="overallProgress" style="height:100%;background:linear-gradient(90deg,#34d399,#00c4ff);width:0%;transition:width 0.5s;border-radius:4px"></div>
+        </div>
+        <div id="overallPct" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--green);min-width:40px">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PROJECT 1: ASR ─── -->
+  <div id="project-1" class="project-panel" style="display:block">
+  <div class="section">
+    <div class="section-title" style="color:#34d399">🏗️ Project 1 — Deploy Azure Site Recovery (VM-to-VM)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">DIFFICULTY</div>
+        <div style="color:var(--gold);font-weight:700;font-size:14px">Intermediate</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">EST. TIME</div>
+        <div style="color:var(--accent);font-weight:700;font-size:14px">~60 min</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">COST ESTIMATE</div>
+        <div style="color:var(--green);font-weight:700;font-size:14px">~$2–5 USD</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🎯 Objective</div>
+      <div class="card-body">Deploy a Windows Server VM in <strong style="color:var(--accent)">West Europe</strong>, enable Azure Site Recovery replication to <strong style="color:var(--accent)">North Europe</strong>, configure a Recovery Plan with a pre-failover script, and execute a Test Failover to validate recovery in an isolated network.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">📋 Prerequisites</div>
+      <div class="card-body">Azure subscription with Contributor access · Azure CLI installed (az --version ≥ 2.50) · Basic familiarity with Azure Portal · Resource group quota for 2 VMs across 2 regions</div>
+    </div>
+
+    <div class="section-title" style="font-size:16px;margin-bottom:16px">Step-by-Step Lab</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 1 — Create Resource Groups &amp; Vault</span></div>
+      <div class="code-body"><code><span class="cmt"># ── Variables ─────────────────────────────────────────────────</span>
+<span class="var">PRIMARY_RG</span>=<span class="str">"rg-bcdr-primary"</span>
+<span class="var">DR_RG</span>=<span class="str">"rg-bcdr-dr"</span>
+<span class="var">PRIMARY_REGION</span>=<span class="str">"westeurope"</span>
+<span class="var">DR_REGION</span>=<span class="str">"northeurope"</span>
+<span class="var">VAULT_NAME</span>=<span class="str">"rsv-bcdr-lab"</span>
+
+<span class="cmt"># Create resource groups</span>
+az group create --name <span class="var">$PRIMARY_RG</span> --location <span class="var">$PRIMARY_REGION</span>
+az group create --name <span class="var">$DR_RG</span> --location <span class="var">$DR_REGION</span>
+
+<span class="cmt"># Create Recovery Services Vault in DR region</span>
+az backup vault create \
+  --name <span class="var">$VAULT_NAME</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span>
+
+<span class="cmt"># Enable soft delete and immutability on vault</span>
+az backup vault backup-properties set \
+  --vault-name <span class="var">$VAULT_NAME</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --soft-delete-feature-state Enable
+
+<span class="fn">echo</span> <span class="str">"✅ Vault created: $VAULT_NAME in $DR_REGION"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 2 — Deploy Source VM with Tags</span></div>
+      <div class="code-body"><code><span class="cmt"># Create VNet in primary region</span>
+az network vnet create \
+  --name <span class="str">"vnet-primary"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --address-prefix <span class="str">"10.1.0.0/16"</span> \
+  --subnet-name <span class="str">"snet-app"</span> \
+  --subnet-prefix <span class="str">"10.1.1.0/24"</span>
+
+<span class="cmt"># Deploy Windows Server VM (Standard_D2s_v3)</span>
+az vm create \
+  --name <span class="str">"vm-app-primary"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --image <span class="str">"Win2022Datacenter"</span> \
+  --size <span class="str">"Standard_D2s_v3"</span> \
+  --vnet-name <span class="str">"vnet-primary"</span> \
+  --subnet <span class="str">"snet-app"</span> \
+  --admin-username <span class="str">"azureadmin"</span> \
+  --admin-password <span class="str">"P@ssw0rd!BcdrLab2024"</span> \
+  --tags bcdr-tier=T1 environment=prod
+
+<span class="fn">echo</span> <span class="str">"✅ Source VM deployed"</span>
+
+<span class="cmt"># Create isolated DR VNet for test failover</span>
+az network vnet create \
+  --name <span class="str">"vnet-dr-isolated"</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --address-prefix <span class="str">"10.2.0.0/16"</span> \
+  --subnet-name <span class="str">"snet-dr-test"</span> \
+  --subnet-prefix <span class="str">"10.2.1.0/24"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 3 — Enable ASR Replication via Portal (CLI preview shown)</span></div>
+      <div class="code-body"><code><span class="cmt"># Get VM Resource ID</span>
+<span class="var">VM_ID</span>=<span class="fn">$(</span>az vm show \
+  --name <span class="str">"vm-app-primary"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --query id --output tsv<span class="fn">)</span>
+
+<span class="cmt"># NOTE: ASR replication is best enabled via Portal for the lab.
+# Portal path: Recovery Services Vault → Replicate → Azure → Azure
+# Source: West Europe | Target: North Europe
+# Replication Policy: 5-min crash-consistent, 60-min app-consistent
+#
+# Alternative: Use PowerShell Az module for full CLI automation:
+</span>
+<span class="cmt"># PowerShell equivalent:</span>
+<span class="kw">Set-AzRecoveryServicesAsrReplicationProtectedItem</span> `
+  -ReplicationProtectedItem <span class="var">$protectedItem</span> `
+  -Name <span class="str">"vm-app-primary"</span> `
+  -RecoveryResourceGroupId <span class="var">$drRgId</span>
+
+<span class="cmt"># Monitor replication status (check every 5 min — initial sync: 20-60 min)</span>
+az site-recovery replication-protected-item list \
+  --resource-group <span class="var">$DR_RG</span> \
+  --vault-name <span class="var">$VAULT_NAME</span> \
+  --query "[].{Name:name, Health:properties.replicationHealth, RPO:properties.rpoInSeconds}" \
+  --output table</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">POWERSHELL</span><span class="code-file">Step 4 — Create Recovery Plan with Automation Runbook</span></div>
+      <div class="code-body"><code><span class="cmt"># Install Az.RecoveryServices module if needed</span>
+Install-Module Az.RecoveryServices -Force
+
+<span class="cmt"># Connect and set context</span>
+Connect-AzAccount
+<span class="var">$vault</span> = Get-AzRecoveryServicesVault -Name <span class="str">"rsv-bcdr-lab"</span>
+Set-AzRecoveryServicesAsrVaultContext -Vault <span class="var">$vault</span>
+
+<span class="cmt"># Get fabric and protection container</span>
+<span class="var">$primaryFabric</span> = Get-AzRecoveryServicesAsrFabric -Name <span class="str">"asr-a2a-default-westeurope"</span>
+<span class="var">$drFabric</span>      = Get-AzRecoveryServicesAsrFabric -Name <span class="str">"asr-a2a-default-northeurope"</span>
+
+<span class="cmt"># Create Recovery Plan</span>
+<span class="var">$vm</span> = Get-AzRecoveryServicesAsrReplicationProtectedItem `
+       -ProtectionContainer (Get-AzRecoveryServicesAsrProtectionContainer `
+         -Fabric <span class="var">$primaryFabric</span>)[0]
+
+New-AzRecoveryServicesAsrRecoveryPlan `
+  -Name <span class="str">"RecoveryPlan-T1-WebApp"</span> `
+  -PrimaryFabric <span class="var">$primaryFabric</span> `
+  -RecoveryFabric <span class="var">$drFabric</span> `
+  -ReplicationProtectedItem <span class="var">$vm</span>
+
+<span class="fn">Write-Host</span> <span class="str">"✅ Recovery Plan created"</span> -ForegroundColor Green</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 5 — Execute Test Failover &amp; Validate</span></div>
+      <div class="code-body"><code><span class="cmt"># Get isolated test VNet ID</span>
+<span class="var">TEST_VNET_ID</span>=<span class="fn">$(</span>az network vnet show \
+  --name <span class="str">"vnet-dr-isolated"</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --query id --output tsv<span class="fn">)</span>
+
+<span class="cmt"># Trigger test failover via Portal:
+# Recovery Services Vault → Recovery Plans → RecoveryPlan-T1-WebApp
+# → Test Failover → Latest Recovery Point → Select: vnet-dr-isolated
+#
+# After VMs boot in isolated VNet, run validation:</span>
+
+<span class="cmt"># Check if test failover VMs are running</span>
+az vm list \
+  --resource-group <span class="var">$DR_RG</span> \
+  --query "[?contains(name,'-test')].{Name:name,Status:powerState}" \
+  --show-details \
+  --output table
+
+<span class="cmt"># Validate application (replace IP with test VM private IP)</span>
+curl -s --connect-timeout 10 http://&lt;TEST_VM_PRIVATE_IP&gt;/ \
+  && <span class="fn">echo</span> <span class="str">"✅ App responding in DR"</span> \
+  || <span class="fn">echo</span> <span class="str">"❌ App not responding — investigate"</span>
+
+<span class="cmt"># IMPORTANT: Cleanup test failover after validation</span>
+<span class="cmt"># Portal: Recovery Plan → Cleanup Test Failover → Mark as complete</span></code></div>
+    </div>
+
+    <div class="card" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.25);margin-bottom:20px">
+      <div class="card-title" style="color:#34d399">✅ Validation Criteria</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Recovery Services Vault created in North Europe with soft-delete enabled</li>
+          <li><span class="check-icon">✓</span>VM replication status shows "Healthy" with RPO &lt; 5 minutes</li>
+          <li><span class="check-icon">✓</span>Recovery Plan created with correct source/target fabric</li>
+          <li><span class="check-icon">✓</span>Test Failover completed to isolated VNet without errors</li>
+          <li><span class="check-icon">✓</span>Test VM booted successfully in North Europe</li>
+          <li><span class="check-icon">✓</span>Test Failover cleaned up — replication resumed</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <button onclick="completeProject(1)" style="padding:12px 32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Mark Project 1 Complete ✓</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ─── PROJECT 2: SQL FAILOVER GROUPS ─── -->
+  <div id="project-2" class="project-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#00c4ff">🗄️ Project 2 — SQL Failover Groups &amp; Geo-Replication</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">DIFFICULTY</div><div style="color:var(--gold);font-weight:700;font-size:14px">Intermediate</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">EST. TIME</div><div style="color:var(--accent);font-weight:700;font-size:14px">~45 min</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">COST ESTIMATE</div><div style="color:var(--green);font-weight:700;font-size:14px">~$3–8 USD</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🎯 Objective</div>
+      <div class="card-body">Deploy Azure SQL Database in West Europe with an Auto-Failover Group to North Europe. Configure a single listener endpoint that works for both regions, seed test data, execute a manual failover, and verify zero-connection-string-change behaviour.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 1 — Deploy Primary &amp; Secondary SQL Servers</span></div>
+      <div class="code-body"><code><span class="var">SQL_ADMIN</span>=<span class="str">"sqladmin"</span>
+<span class="var">SQL_PASSWORD</span>=<span class="str">"P@ssw0rdSQL!2024"</span>
+<span class="var">SERVER_PRIMARY</span>=<span class="str">"sql-bcdr-primary-$(openssl rand -hex 4)"</span>
+<span class="var">SERVER_DR</span>=<span class="str">"sql-bcdr-dr-$(openssl rand -hex 4)"</span>
+<span class="var">FOG_NAME</span>=<span class="str">"fog-bcdr-lab"</span>
+<span class="var">DB_NAME</span>=<span class="str">"db-enterprise"</span>
+
+<span class="cmt"># Create primary SQL server</span>
+az sql server create \
+  --name <span class="var">$SERVER_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --admin-user <span class="var">$SQL_ADMIN</span> \
+  --admin-password <span class="var">$SQL_PASSWORD</span>
+
+<span class="cmt"># Create DR SQL server</span>
+az sql server create \
+  --name <span class="var">$SERVER_DR</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --admin-user <span class="var">$SQL_ADMIN</span> \
+  --admin-password <span class="var">$SQL_PASSWORD</span>
+
+<span class="cmt"># Create database on primary (General Purpose, 4 vCores)</span>
+az sql db create \
+  --server <span class="var">$SERVER_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --name <span class="var">$DB_NAME</span> \
+  --service-objective <span class="str">"GP_Gen5_4"</span> \
+  --backup-storage-redundancy Geo
+
+<span class="fn">echo</span> <span class="str">"✅ SQL servers and database created"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 2 — Create Auto-Failover Group</span></div>
+      <div class="code-body"><code><span class="cmt"># Create Auto-Failover Group</span>
+az sql failover-group create \
+  --name <span class="var">$FOG_NAME</span> \
+  --server <span class="var">$SERVER_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --partner-server <span class="var">$SERVER_DR</span> \
+  --partner-resource-group <span class="var">$DR_RG</span> \
+  --failover-policy Automatic \
+  --grace-period 1 \
+  --add-db <span class="var">$DB_NAME</span>
+
+<span class="cmt"># Get the Failover Group listener endpoints</span>
+az sql failover-group show \
+  --name <span class="var">$FOG_NAME</span> \
+  --server <span class="var">$SERVER_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --query "{ReadWrite:readWriteEndpoint.failoverPolicy,
+            Listener:'${FOG_NAME}.database.windows.net',
+            ReplicationRole:replicationRole}" \
+  --output table
+
+<span class="cmt"># Your application connection string (NEVER changes on failover):</span>
+<span class="fn">echo</span> <span class="str">"Connection: Server=${FOG_NAME}.database.windows.net;Database=${DB_NAME};User=${SQL_ADMIN};Password=${SQL_PASSWORD}"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">SQL</span><span class="code-file">Step 3 — Seed Test Data &amp; Validate Replication</span></div>
+      <div class="code-body"><code><span class="cmt">-- Connect to: ${FOG_NAME}.database.windows.net (primary listener)</span>
+<span class="cmt">-- Create test table and insert rows</span>
+<span class="kw">CREATE TABLE</span> dbo.BcdrTest (
+  Id        <span class="fn">INT</span> <span class="kw">IDENTITY PRIMARY KEY</span>,
+  Message   <span class="fn">NVARCHAR</span>(<span class="num">200</span>),
+  CreatedAt <span class="fn">DATETIME2</span> <span class="kw">DEFAULT</span> <span class="fn">SYSDATETIME</span>(),
+  Region    <span class="fn">NVARCHAR</span>(<span class="num">50</span>)
+);
+
+<span class="kw">INSERT INTO</span> dbo.BcdrTest (Message, Region)
+<span class="kw">VALUES</span>
+  (<span class="str">'Record written before failover'</span>, <span class="fn">@@SERVERNAME</span>),
+  (<span class="str">'Replication test row 1'</span>, <span class="fn">@@SERVERNAME</span>),
+  (<span class="str">'Replication test row 2'</span>, <span class="fn">@@SERVERNAME</span>);
+
+<span class="cmt">-- Check current primary</span>
+<span class="kw">SELECT</span> <span class="fn">@@SERVERNAME</span> <span class="kw">AS</span> CurrentPrimary, <span class="fn">GETDATE</span>() <span class="kw">AS</span> CurrentTime;
+
+<span class="cmt">-- Verify data on DR replica (read-only endpoint)</span>
+<span class="cmt">-- Connect to: ${FOG_NAME}.secondary.database.windows.net</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> dbo.BcdrTest <span class="kw">ORDER BY</span> Id <span class="kw">DESC</span>;
+<span class="cmt">-- Should see same rows replicated to DR</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 4 — Execute Manual Failover &amp; Verify</span></div>
+      <div class="code-body"><code><span class="cmt"># Execute planned failover to DR (no data loss)</span>
+az sql failover-group set-primary \
+  --name <span class="var">$FOG_NAME</span> \
+  --server <span class="var">$SERVER_DR</span> \
+  --resource-group <span class="var">$DR_RG</span>
+
+<span class="fn">echo</span> <span class="str">"⏳ Failover in progress... (typically 20-30 seconds)"</span>
+
+<span class="cmt"># Verify new primary (reconnect to same listener endpoint)</span>
+az sql failover-group show \
+  --name <span class="var">$FOG_NAME</span> \
+  --server <span class="var">$SERVER_DR</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --query "{CurrentPrimary:replicationRole, Listener:'same endpoint'}"
+
+<span class="cmt"># After verifying, fail back to original primary</span>
+az sql failover-group set-primary \
+  --name <span class="var">$FOG_NAME</span> \
+  --server <span class="var">$SERVER_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Failover and failback complete — same connection string used throughout"</span></code></div>
+    </div>
+
+    <div class="card" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.25);margin-bottom:20px">
+      <div class="card-title" style="color:#34d399">✅ Validation Criteria</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Failover Group created with Automatic policy and 1-hour grace period</li>
+          <li><span class="check-icon">✓</span>Test data visible on DR replica within &lt; 5 seconds of insert</li>
+          <li><span class="check-icon">✓</span>Manual failover completed in &lt; 30 seconds</li>
+          <li><span class="check-icon">✓</span>Application connection string unchanged during failover</li>
+          <li><span class="check-icon">✓</span>Post-failover: data inserted to new primary replicates back to original</li>
+          <li><span class="check-icon">✓</span>Failback to original primary completed successfully</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button onclick="completeProject(2)" style="padding:12px 32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Mark Project 2 Complete ✓</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ─── PROJECT 3: FAILOVER AUTOMATION ─── -->
+  <div id="project-3" class="project-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#ffbe0b">⚡ Project 3 — Automated Failover Orchestration with Azure Automation</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">DIFFICULTY</div><div style="color:var(--accent3);font-weight:700;font-size:14px">Advanced</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">EST. TIME</div><div style="color:var(--accent);font-weight:700;font-size:14px">~90 min</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">COST ESTIMATE</div><div style="color:var(--green);font-weight:700;font-size:14px">~$1–3 USD</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🎯 Objective</div>
+      <div class="card-body">Build an Azure Automation Runbook that detects application health failure via Azure Monitor alert, triggers ASR Recovery Plan failover, updates Traffic Manager endpoint priorities, and sends Teams notification — all without human intervention.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 1 — Create Automation Account &amp; Managed Identity</span></div>
+      <div class="code-body"><code><span class="var">AUTOMATION_ACCOUNT</span>=<span class="str">"aa-bcdr-orchestrator"</span>
+
+<span class="cmt"># Create Azure Automation Account</span>
+az automation account create \
+  --name <span class="var">$AUTOMATION_ACCOUNT</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --sku Free
+
+<span class="cmt"># Enable System-Assigned Managed Identity</span>
+az automation account update \
+  --name <span class="var">$AUTOMATION_ACCOUNT</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --set identity.type=SystemAssigned
+
+<span class="cmt"># Get Managed Identity Object ID</span>
+<span class="var">MI_OBJECT_ID</span>=<span class="fn">$(</span>az automation account show \
+  --name <span class="var">$AUTOMATION_ACCOUNT</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --query identity.principalId --output tsv<span class="fn">)</span>
+
+<span class="cmt"># Assign Contributor role on both resource groups</span>
+<span class="var">SUB_ID</span>=<span class="fn">$(</span>az account show --query id --output tsv<span class="fn">)</span>
+
+az role assignment create \
+  --assignee <span class="var">$MI_OBJECT_ID</span> \
+  --role Contributor \
+  --scope <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG"</span>
+
+az role assignment create \
+  --assignee <span class="var">$MI_OBJECT_ID</span> \
+  --role Contributor \
+  --scope <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$DR_RG"</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Automation account with Managed Identity configured"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">POWERSHELL</span><span class="code-file">Step 2 — Failover Orchestration Runbook</span></div>
+      <div class="code-body"><code><span class="cmt"># Runbook: Invoke-BcdrFailover.ps1
+# Trigger: Azure Monitor Alert → Automation Webhook</span>
+
+<span class="kw">param</span>(
+  [<span class="fn">Parameter</span>(Mandatory=<span class="var">$false</span>)]
+  [<span class="fn">string</span>]<span class="var">$WebhookData</span>
+)
+
+<span class="cmt"># ── Authenticate via Managed Identity ─────────────────────────</span>
+Connect-AzAccount -Identity
+<span class="var">$subscriptionId</span> = <span class="fn">Get-AzContext</span> | Select-Object -ExpandProperty Subscription
+
+<span class="fn">Write-Output</span> <span class="str">"🚨 BCDR Failover initiated at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') UTC"</span>
+
+<span class="cmt"># ── Step 1: Trigger ASR Recovery Plan ─────────────────────────</span>
+<span class="fn">Write-Output</span> <span class="str">"[1/4] Triggering ASR Recovery Plan..."</span>
+<span class="var">$vault</span> = <span class="fn">Get-AzRecoveryServicesVault</span> -Name <span class="str">"rsv-bcdr-lab"</span>
+<span class="fn">Set-AzRecoveryServicesAsrVaultContext</span> -Vault <span class="var">$vault</span>
+<span class="var">$plan</span> = <span class="fn">Get-AzRecoveryServicesAsrRecoveryPlan</span> -Name <span class="str">"RecoveryPlan-T1-WebApp"</span>
+<span class="var">$job</span>  = <span class="fn">Start-AzRecoveryServicesAsrUnplannedFailoverJob</span> `
+         -RecoveryPlan <span class="var">$plan</span> -Direction PrimaryToRecovery
+<span class="fn">Write-Output</span> <span class="str">"ASR Job: $($job.Name) — Status: $($job.State)"</span>
+
+<span class="cmt"># ── Step 2: Wait for ASR completion (max 30 min) ──────────────</span>
+<span class="var">$timeout</span> = (Get-Date).AddMinutes(<span class="num">30</span>)
+<span class="kw">do</span> {
+  Start-Sleep -Seconds <span class="num">30</span>
+  <span class="var">$job</span> = <span class="fn">Get-AzRecoveryServicesAsrJob</span> -Name <span class="var">$job</span>.Name
+  <span class="fn">Write-Output</span> <span class="str">"ASR Status: $($job.State) — $((Get-Date).ToString('HH:mm:ss'))"</span>
+} <span class="kw">while</span> (<span class="var">$job</span>.State -notin @(<span class="str">'Succeeded'</span>,<span class="str">'Failed'</span>) -and (Get-Date) -lt <span class="var">$timeout</span>)
+
+<span class="kw">if</span> (<span class="var">$job</span>.State -ne <span class="str">'Succeeded'</span>) { <span class="kw">throw</span> <span class="str">"ASR failover failed: $($job.Errors)"</span> }
+
+<span class="cmt"># ── Step 3: Update Traffic Manager to DR endpoint ─────────────</span>
+<span class="fn">Write-Output</span> <span class="str">"[3/4] Updating Traffic Manager priorities..."</span>
+<span class="var">$tm</span> = <span class="fn">Get-AzTrafficManagerProfile</span> -Name <span class="str">"tm-bcdr-lab"</span> -ResourceGroupName <span class="str">"rg-bcdr-primary"</span>
+(<span class="var">$tm</span>.Endpoints | <span class="kw">Where-Object</span> { <span class="var">$_</span>.Name -eq <span class="str">"ep-dr"</span> }).Priority = <span class="num">1</span>
+(<span class="var">$tm</span>.Endpoints | <span class="kw">Where-Object</span> { <span class="var">$_</span>.Name -eq <span class="str">"ep-primary"</span> }).Priority = <span class="num">2</span>
+<span class="fn">Set-AzTrafficManagerProfile</span> -TrafficManagerProfile <span class="var">$tm</span>
+<span class="fn">Write-Output</span> <span class="str">"Traffic Manager updated — DR endpoint is now priority 1"</span>
+
+<span class="cmt"># ── Step 4: Send Teams notification ───────────────────────────</span>
+<span class="fn">Write-Output</span> <span class="str">"[4/4] Sending Teams alert..."</span>
+<span class="var">$teamsWebhook</span> = <span class="fn">Get-AutomationVariable</span> -Name <span class="str">"TeamsWebhookUrl"</span>
+<span class="var">$body</span> = @{ text = <span class="str">"🚨 *BCDR FAILOVER COMPLETE* — $(Get-Date -Format 'HH:mm UTC'). Primary: West Europe ❌ | Active: North Europe ✅"</span> }
+<span class="fn">Invoke-RestMethod</span> -Uri <span class="var">$teamsWebhook</span> -Method Post -Body (<span class="var">$body</span> | <span class="fn">ConvertTo-Json</span>) -ContentType <span class="str">"application/json"</span>
+
+<span class="fn">Write-Output</span> <span class="str">"✅ BCDR Failover orchestration complete"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 3 — Create Azure Monitor Alert to Trigger Runbook</span></div>
+      <div class="code-body"><code><span class="cmt"># Create Action Group linked to Automation Runbook webhook</span>
+az monitor action-group create \
+  --name <span class="str">"ag-bcdr-failover"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --action runbook \
+    name=<span class="str">"TriggerBcdrFailover"</span> \
+    automation-account-id=<span class="str">"/subscriptions/$SUB_ID/resourceGroups/$DR_RG/providers/Microsoft.Automation/automationAccounts/$AUTOMATION_ACCOUNT"</span> \
+    runbook-name=<span class="str">"Invoke-BcdrFailover"</span> \
+    use-common-alert-schema <span class="num">true</span>
+
+<span class="cmt"># Create Availability alert — triggers when app health &lt; 50% for 5 min</span>
+az monitor metrics alert create \
+  --name <span class="str">"alert-bcdr-app-down"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --scopes <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Web/sites/app-primary"</span> \
+  --condition <span class="str">"avg Requests &lt; 1"</span> \
+  --window-size 5m \
+  --evaluation-frequency 1m \
+  --severity 1 \
+  --action <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/microsoft.insights/actionGroups/ag-bcdr-failover"</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Alert + Automation webhook wired up"</span></code></div>
+    </div>
+
+    <div class="card" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.25);margin-bottom:20px">
+      <div class="card-title" style="color:#34d399">✅ Validation Criteria</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Automation Account with System-Assigned Managed Identity created</li>
+          <li><span class="check-icon">✓</span>Managed Identity has Contributor on both resource groups</li>
+          <li><span class="check-icon">✓</span>Runbook imports, publishes, and test-executes without errors</li>
+          <li><span class="check-icon">✓</span>Azure Monitor alert fires correctly (test with manual trigger)</li>
+          <li><span class="check-icon">✓</span>End-to-end failover completes in &lt; RTO target</li>
+          <li><span class="check-icon warn">⚠</span>Teams notification received with correct failover details</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button onclick="completeProject(3)" style="padding:12px 32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Mark Project 3 Complete ✓</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ─── PROJECT 4: CHAOS STUDIO ─── -->
+  <div id="project-4" class="project-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#ff5f3d">💥 Project 4 — Chaos Engineering with Azure Chaos Studio</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">DIFFICULTY</div><div style="color:var(--accent3);font-weight:700;font-size:14px">Advanced</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">EST. TIME</div><div style="color:var(--accent);font-weight:700;font-size:14px">~75 min</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">COST ESTIMATE</div><td style="color:var(--green);font-weight:700;font-size:14px">~$1–2 USD</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🎯 Objective</div>
+      <div class="card-body">Enable Azure Chaos Studio targets, create and execute a chaos experiment that injects CPU pressure and VM shutdown faults against the primary VM, observe Traffic Manager failover, and confirm application resilience. Measure actual RTO from chaos injection to full recovery.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 1 — Enable Chaos Studio Targets &amp; Install Agent</span></div>
+      <div class="code-body"><code><span class="var">VM_ID</span>=<span class="fn">$(</span>az vm show \
+  --name <span class="str">"vm-app-primary"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --query id --output tsv<span class="fn">)</span>
+
+<span class="cmt"># Enable Chaos Studio target on the VM (Service-Direct target)</span>
+az rest --method PUT \
+  --url <span class="str">"https://management.azure.com${VM_ID}/providers/Microsoft.Chaos/targets/Microsoft-VirtualMachine?api-version=2023-11-01"</span> \
+  --body <span class="str">'{"properties": {}}'</span>
+
+<span class="cmt"># Enable Agent-Based target (required for CPU/memory faults)</span>
+az rest --method PUT \
+  --url <span class="str">"https://management.azure.com${VM_ID}/providers/Microsoft.Chaos/targets/Microsoft-Agent?api-version=2023-11-01"</span> \
+  --body <span class="str">'{"properties": {"identityId": ""}}'</span>
+
+<span class="cmt"># Install Chaos Agent extension on VM</span>
+az vm extension set \
+  --name ChaosWindowsAgent \
+  --publisher Microsoft.Azure.Chaos \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --vm-name <span class="str">"vm-app-primary"</span> \
+  --settings <span class="str">'{"profile": "https://management.azure.com/subscriptions/'</span><span class="var">$SUB_ID</span><span class="str">'/resourceGroups/'</span><span class="var">$PRIMARY_RG</span><span class="str">'/providers/Microsoft.Compute/virtualMachines/vm-app-primary/providers/Microsoft.Chaos/targets/Microsoft-Agent"}'</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Chaos targets enabled — allow 5 minutes for agent registration"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JSON</span><span class="code-file">Step 2 — Define Chaos Experiment (CPU Pressure + VM Shutdown)</span></div>
+      <div class="code-body"><code>{
+  <span class="str">"name"</span>: <span class="str">"exp-bcdr-resilience-test"</span>,
+  <span class="str">"location"</span>: <span class="str">"westeurope"</span>,
+  <span class="str">"identity"</span>: { <span class="str">"type"</span>: <span class="str">"SystemAssigned"</span> },
+  <span class="str">"properties"</span>: {
+    <span class="str">"steps"</span>: [
+      {
+        <span class="str">"name"</span>: <span class="str">"Step1-CPUPressure"</span>,
+        <span class="str">"branches"</span>: [{
+          <span class="str">"name"</span>: <span class="str">"Branch1"</span>,
+          <span class="str">"actions"</span>: [{
+            <span class="str">"name"</span>: <span class="str">"urn:csci:microsoft:agent:cpuPressure/1.0"</span>,
+            <span class="str">"type"</span>: <span class="str">"continuous"</span>,
+            <span class="str">"duration"</span>: <span class="str">"PT5M"</span>,
+            <span class="str">"parameters"</span>: [{ <span class="str">"key"</span>: <span class="str">"pressureLevel"</span>, <span class="str">"value"</span>: <span class="str">"95"</span> }],
+            <span class="str">"selectorId"</span>: <span class="str">"primaryVm"</span>
+          }]
+        }]
+      },
+      {
+        <span class="str">"name"</span>: <span class="str">"Step2-VMShutdown"</span>,
+        <span class="str">"branches"</span>: [{
+          <span class="str">"name"</span>: <span class="str">"Branch1"</span>,
+          <span class="str">"actions"</span>: [{
+            <span class="str">"name"</span>: <span class="str">"urn:csci:microsoft:virtualMachine:shutdown/1.0"</span>,
+            <span class="str">"type"</span>: <span class="str">"continuous"</span>,
+            <span class="str">"duration"</span>: <span class="str">"PT10M"</span>,
+            <span class="str">"parameters"</span>: [{ <span class="str">"key"</span>: <span class="str">"abruptShutdown"</span>, <span class="str">"value"</span>: <span class="str">"true"</span> }],
+            <span class="str">"selectorId"</span>: <span class="str">"primaryVm"</span>
+          }]
+        }]
+      }
+    ],
+    <span class="str">"selectors"</span>: [{
+      <span class="str">"id"</span>: <span class="str">"primaryVm"</span>,
+      <span class="str">"type"</span>: <span class="str">"List"</span>,
+      <span class="str">"targets"</span>: [{
+        <span class="str">"id"</span>: <span class="str">"&lt;VM_RESOURCE_ID&gt;/providers/Microsoft.Chaos/targets/Microsoft-VirtualMachine"</span>,
+        <span class="str">"type"</span>: <span class="str">"ChaosTarget"</span>
+      }]
+    }]
+  }
+}</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 3 — Deploy &amp; Execute Experiment, Observe Failover</span></div>
+      <div class="code-body"><code><span class="cmt"># Deploy experiment from JSON file</span>
+az rest --method PUT \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/exp-bcdr-resilience-test?api-version=2023-11-01"</span> \
+  --body @experiment.json
+
+<span class="cmt"># Grant experiment's Managed Identity the VM Contributor role</span>
+<span class="var">EXP_MI</span>=<span class="fn">$(</span>az rest --method GET \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/exp-bcdr-resilience-test?api-version=2023-11-01"</span> \
+  --query identity.principalId --output tsv<span class="fn">)</span>
+
+az role assignment create --assignee <span class="var">$EXP_MI</span> --role <span class="str">"Virtual Machine Contributor"</span> --scope <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG"</span>
+
+<span class="cmt"># Start experiment (record T0 — start time)</span>
+<span class="fn">echo</span> <span class="str">"T0: $(date -u '+%H:%M:%S UTC') — Chaos experiment starting"</span>
+
+az rest --method POST \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/exp-bcdr-resilience-test/start?api-version=2023-11-01"</span>
+
+<span class="cmt"># Monitor Traffic Manager — observe when DR endpoint becomes active</span>
+<span class="kw">while</span> true; <span class="kw">do</span>
+  <span class="fn">STATUS</span>=<span class="fn">$(</span>az network traffic-manager endpoint show \
+    --name ep-dr --profile-name tm-bcdr-lab \
+    --resource-group <span class="var">$PRIMARY_RG</span> --type azureEndpoints \
+    --query endpointMonitorStatus --output tsv<span class="fn">)</span>
+  <span class="fn">echo</span> <span class="str">"$(date -u '+%H:%M:%S') DR Endpoint Status: $STATUS"</span>
+  <span class="fn">sleep</span> <span class="num">15</span>
+<span class="kw">done</span></code></div>
+    </div>
+
+    <div class="card" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.25);margin-bottom:20px">
+      <div class="card-title" style="color:#34d399">✅ Validation Criteria</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Chaos targets enabled on VM — agent registered successfully</li>
+          <li><span class="check-icon">✓</span>CPU pressure fault caused Azure Monitor alert to fire</li>
+          <li><span class="check-icon">✓</span>VM shutdown detected by Traffic Manager health probe (&lt; 30s)</li>
+          <li><span class="check-icon">✓</span>Traffic Manager routed 100% traffic to DR endpoint</li>
+          <li><span class="check-icon">✓</span>Measured RTO (T0 to full DR availability) documented</li>
+          <li><span class="check-icon warn">⚠</span>After experiment: primary VM restored and traffic failed back</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button onclick="completeProject(4)" style="padding:12px 32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Mark Project 4 Complete ✓</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ─── PROJECT 5: BCDR DASHBOARD ─── -->
+  <div id="project-5" class="project-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#a78bfa">📊 Project 5 — Live BCDR Posture Dashboard in Azure Monitor</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">DIFFICULTY</div><div style="color:var(--gold);font-weight:700;font-size:14px">Intermediate</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">EST. TIME</div><div style="color:var(--accent);font-weight:700;font-size:14px">~60 min</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">COST ESTIMATE</div><div style="color:var(--green);font-weight:700;font-size:14px">~$2–5 USD</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🎯 Objective</div>
+      <div class="card-body">Build a comprehensive Azure Monitor Workbook that provides real-time visibility into BCDR posture: ASR replication health, backup job status, RPO drift, Traffic Manager endpoint health, and compliance score — all in one live dashboard visible to the BCDR Steering Committee.</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 1 — Create Log Analytics Workspace &amp; Wire Diagnostics</span></div>
+      <div class="code-body"><code><span class="var">LAW_NAME</span>=<span class="str">"law-bcdr-monitoring"</span>
+
+<span class="cmt"># Create Log Analytics Workspace</span>
+az monitor log-analytics workspace create \
+  --name <span class="var">$LAW_NAME</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --retention-time <span class="num">90</span>
+
+<span class="var">LAW_ID</span>=<span class="fn">$(</span>az monitor log-analytics workspace show \
+  --name <span class="var">$LAW_NAME</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --query id --output tsv<span class="fn">)</span>
+
+<span class="cmt"># Send Recovery Services Vault diagnostics to Log Analytics</span>
+az monitor diagnostic-settings create \
+  --name <span class="str">"diag-rsv-to-law"</span> \
+  --resource <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$DR_RG/providers/Microsoft.RecoveryServices/vaults/$VAULT_NAME"</span> \
+  --workspace <span class="var">$LAW_ID</span> \
+  --logs <span class="str">'[{"category":"AzureBackupReport","enabled":true},
+          {"category":"AzureSiteRecoveryReplicatedItems","enabled":true},
+          {"category":"AzureSiteRecoveryReplicationStats","enabled":true}]'</span>
+
+<span class="cmt"># Send Traffic Manager diagnostics</span>
+az monitor diagnostic-settings create \
+  --name <span class="str">"diag-tm-to-law"</span> \
+  --resource <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Network/trafficManagerProfiles/tm-bcdr-lab"</span> \
+  --workspace <span class="var">$LAW_ID</span> \
+  --logs <span class="str">'[{"category":"ProbeHealthStatusEvents","enabled":true}]'</span> \
+  --metrics <span class="str">'[{"category":"AllMetrics","enabled":true}]'</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Diagnostics flowing to Log Analytics"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">KQL</span><span class="code-file">Step 2 — Key BCDR Monitoring Queries</span></div>
+      <div class="code-body"><code><span class="cmt">// ── Query 1: ASR Replication Health Overview ─────────────────────</span>
+AzureDiagnostics
+| <span class="kw">where</span> ResourceType == <span class="str">"VAULTS"</span>
+  <span class="kw">and</span> Category == <span class="str">"AzureSiteRecoveryReplicatedItems"</span>
+| <span class="kw">summarize</span> <span class="fn">arg_max</span>(TimeGenerated, *) <span class="kw">by</span> replicationProviderName_s
+| <span class="kw">project</span> VM=replicationProviderName_s,
+          Health=replicationHealth_s,
+          RPO_Minutes=<span class="fn">toint</span>(rpoInSeconds_d/<span class="num">60</span>),
+          LastSync=TimeGenerated
+| <span class="kw">order by</span> RPO_Minutes <span class="kw">desc</span>
+
+<span class="cmt">// ── Query 2: Backup Job Success Rate (Last 7 Days) ────────────────</span>
+AzureDiagnostics
+| <span class="kw">where</span> Category == <span class="str">"AzureBackupReport"</span>
+  <span class="kw">and</span> TimeGenerated &gt; <span class="fn">ago</span>(7d)
+  <span class="kw">and</span> OperationName == <span class="str">"Job"</span>
+| <span class="kw">summarize</span>
+    Total     = <span class="fn">count</span>(),
+    Succeeded = <span class="fn">countif</span>(status_s == <span class="str">"Completed"</span>),
+    Failed    = <span class="fn">countif</span>(status_s == <span class="str">"Failed"</span>)
+    <span class="kw">by</span> <span class="fn">bin</span>(TimeGenerated, 1d)
+| <span class="kw">extend</span> SuccessRate = <span class="fn">round</span>(<span class="num">100.0</span> * Succeeded / Total, <span class="num">1</span>)
+| <span class="kw">project-rename</span> Date=TimeGenerated
+
+<span class="cmt">// ── Query 3: RPO Breach Alert (RPO > target) ──────────────────────</span>
+AzureDiagnostics
+| <span class="kw">where</span> Category == <span class="str">"AzureSiteRecoveryReplicationStats"</span>
+  <span class="kw">and</span> TimeGenerated &gt; <span class="fn">ago</span>(1h)
+| <span class="kw">where</span> <span class="fn">tolong</span>(rpoInSeconds_d) &gt; <span class="num">300</span>  <span class="cmt">// &gt; 5 minute RPO breach</span>
+| <span class="kw">project</span> VM=friendlyName_s,
+          RPO_Seconds=<span class="fn">tolong</span>(rpoInSeconds_d),
+          AlertTime=TimeGenerated
+| <span class="kw">order by</span> RPO_Seconds <span class="kw">desc</span>
+
+<span class="cmt">// ── Query 4: Traffic Manager Endpoint Health Timeline ─────────────</span>
+AzureDiagnostics
+| <span class="kw">where</span> ResourceType == <span class="str">"TRAFFICMANAGERPROFILES"</span>
+  <span class="kw">and</span> TimeGenerated &gt; <span class="fn">ago</span>(24h)
+| <span class="kw">summarize</span> HealthScore=<span class="fn">avg</span>(<span class="fn">todouble</span>(EndpointProbeResults_s == <span class="str">"Online"</span>)) * <span class="num">100</span>
+  <span class="kw">by</span> EndpointName_s, <span class="fn">bin</span>(TimeGenerated, 15m)
+| <span class="kw">render</span> timechart</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">Step 3 — Deploy Pre-Built Workbook via ARM Template</span></div>
+      <div class="code-body"><code><span class="cmt"># Deploy the BCDR Monitor Workbook (uses saved KQL queries above)</span>
+az monitor app-insights workbook create \
+  --resource-group <span class="var">$DR_RG</span> \
+  --name <span class="str">"wb-bcdr-posture-$(uuidgen | tr '[:upper:]' '[:lower:]')"</span> \
+  --display-name <span class="str">"BCDR Posture Dashboard"</span> \
+  --category <span class="str">"workbook"</span> \
+  --serialized-data @workbook-template.json
+
+<span class="cmt"># Alternative: Use Azure Portal Workbooks gallery
+# Portal → Monitor → Workbooks → New → Import JSON
+# Paste the workbook JSON template from Microsoft BCDR sample gallery</span>
+
+<span class="cmt"># Pin Workbook to Azure Dashboard for steering committee visibility</span>
+az portal dashboard create \
+  --resource-group <span class="var">$DR_RG</span> \
+  --name <span class="str">"dashboard-bcdr-steering"</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --input-path @dashboard-definition.json
+
+<span class="cmt"># Set up Azure Monitor Alert for RPO breach</span>
+az monitor scheduled-query create \
+  --name <span class="str">"alert-rpo-breach"</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --scopes <span class="var">$LAW_ID</span> \
+  --condition-query <span class="str">"AzureDiagnostics | where Category=='AzureSiteRecoveryReplicationStats' and tolong(rpoInSeconds_d) > 300"</span> \
+  --condition-operator <span class="str">"GreaterThan"</span> \
+  --condition-threshold <span class="num">0</span> \
+  --window-size 5m \
+  --evaluation-frequency 5m \
+  --severity <span class="num">2</span> \
+  --action <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/microsoft.insights/actionGroups/ag-bcdr-failover"</span>
+
+<span class="fn">echo</span> <span class="str">"✅ BCDR Dashboard and RPO breach alert configured"</span></code></div>
+    </div>
+
+    <div class="card" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.25);margin-bottom:20px">
+      <div class="card-title" style="color:#34d399">✅ Validation Criteria</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Log Analytics workspace receiving ASR and Traffic Manager diagnostics</li>
+          <li><span class="check-icon">✓</span>All 4 KQL queries return data (no errors)</li>
+          <li><span class="check-icon">✓</span>Azure Monitor Workbook displays live BCDR posture tiles</li>
+          <li><span class="check-icon">✓</span>Workbook pinned to a shared Azure Dashboard</li>
+          <li><span class="check-icon">✓</span>RPO breach alert fires when test RPO exceeds 5 minutes</li>
+          <li><span class="check-icon warn">⚠</span>Dashboard access shared with BCDR Steering Committee (Reader role)</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:20px">
+      <button onclick="completeProject(5)" style="padding:12px 32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Mark Project 5 Complete ✓</button>
+    </div>
+    <div id="all-complete-banner" style="display:none;background:linear-gradient(135deg,rgba(52,211,153,0.1),rgba(0,196,255,0.1));border:1px solid rgba(52,211,153,0.4);border-radius:12px;padding:28px;text-align:center;margin-top:20px">
+      <div style="font-size:40px;margin-bottom:12px">🏆</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#34d399;margin-bottom:8px">All Projects Complete!</div>
+      <div style="color:var(--text-dim);font-size:14px;margin-bottom:20px">You've deployed, automated, stress-tested, and monitored a full enterprise Azure BCDR environment. Proceed to the Knowledge Assessment to earn your completion certificate.</div>
+      <button onclick="showPage('quiz')" style="padding:12px 28px;border-radius:8px;background:linear-gradient(135deg,var(--accent2),#34d399);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Take Final Assessment →</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- PROJECT NAV -->
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+    <button onclick="showProject(1)" style="padding:8px 16px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">← Proj 1</button>
+    <button onclick="showProject(2)" style="padding:8px 16px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">Proj 2</button>
+    <button onclick="showProject(3)" style="padding:8px 16px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">Proj 3</button>
+    <button onclick="showProject(4)" style="padding:8px 16px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">Proj 4</button>
+    <button onclick="showProject(5)" style="padding:8px 16px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">Proj 5 →</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════ QUIZ ════════════════════════════════ -->
+<div id="page-quiz" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;border:1px solid rgba(244,114,182,0.3)">⬡ Assessment</div>
+    <div class="page-title">Knowledge <em style="color:#f472b6">Check</em></div>
+    <p class="page-subtitle">Test your understanding of Enterprise Azure BCP & DR across all five modules. 10 scenario-based questions.</p>
+  </div>
+
+  <div id="quiz-container">
+    <div class="quiz-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted)">QUESTION <span id="qNum">1</span> / 10</div>
+        <div style="width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="quizProgress" style="height:100%;background:linear-gradient(90deg,var(--accent2),#f472b6);width:10%;transition:width 0.3s"></div></div>
+      </div>
+      <div id="quizContent"></div>
+    </div>
+  </div>
+
+  <div class="quiz-score" id="quizScore">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em">Final Score</div>
+    <div class="score-num" id="finalScore">0/10</div>
+    <div class="score-label" id="scoreLabel"></div>
+    <button onclick="restartQuiz()" style="margin-top:24px;padding:12px 28px;border-radius:8px;background:var(--accent2);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Retake Quiz</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ── NAVIGATION ──────────────────────────────────────────────────────
+const pages = ['home','policy','architecture','services','automation','drills','projects','quiz'];
+const progress = { home:0, policy:14, architecture:28, services:42, automation:56, drills:70, projects:85, quiz:100 };
+
+// ── PROJECTS ─────────────────────────────────────────────────────────
+const projectState = { 1: false, 2: false, 3: false, 4: false, 5: false };
+
+function showProject(num) {
+  document.querySelectorAll('.project-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('project-' + num).style.display = 'block';
+  // highlight active badge
+  for (let i=1; i<=5; i++) {
+    const b = document.getElementById('proj-badge-' + i);
+    b.style.borderColor = i === num ? 'rgba(52,211,153,0.5)' : 'var(--border)';
+    b.style.boxShadow = i === num ? '0 0 20px rgba(52,211,153,0.15)' : 'none';
+  }
+}
+
+function completeProject(num) {
+  projectState[num] = true;
+  const badge = document.getElementById('proj-badge-' + num);
+  badge.style.borderColor = 'rgba(52,211,153,0.5)';
+  badge.style.background = 'rgba(52,211,153,0.07)';
+  const status = document.getElementById('proj-status-' + num);
+  status.textContent = '✓ COMPLETE';
+  status.style.color = '#34d399';
+
+  const done = Object.values(projectState).filter(Boolean).length;
+  const pct = (done / 5) * 100;
+  document.getElementById('overallProgress').style.width = pct + '%';
+  document.getElementById('overallPct').textContent = Math.round(pct) + '%';
+
+  if (done === 5) {
+    document.getElementById('all-complete-banner').style.display = 'block';
+    document.getElementById('all-complete-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    // Auto-navigate to next project
+    if (num < 5) setTimeout(() => showProject(num + 1), 500);
+  }
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const idx = pages.indexOf(id);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+  document.getElementById('progressFill').style.width = (progress[id] || 0) + '%';
+  window.scrollTo(0,0);
+}
+
+// ── ACCORDION ───────────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  const h = e.target.closest('.accordion-header');
+  if (!h) return;
+  const body = h.nextElementSibling;
+  const isOpen = h.classList.contains('open');
+  h.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+});
+
+// ── DRILL SIMULATION ─────────────────────────────────────────────────
+function simulateDrill() {
+  const rto = (Math.random() * 40 + 5).toFixed(0);
+  const rpo = (Math.random() * 8 + 1).toFixed(0);
+  const drills = Math.floor(Math.random() * 4 + 2);
+  const actions = Math.floor(Math.random() * 12 + 1);
+  document.getElementById('rtoActual').textContent = rto + ' min';
+  document.getElementById('rpoActual').textContent = rpo + ' min';
+  document.getElementById('drillCount').textContent = drills;
+  document.getElementById('openActions').textContent = actions;
+}
+
+// ── QUIZ ─────────────────────────────────────────────────────────────
+const questions = [
+  { q: "Your payment gateway must have zero tolerance for data loss and sub-minute recovery time. Which workload tier and DR pattern is correct?", opts: ["T2, Pilot Light","T1, Active-Passive Warm Standby","T0, Active-Active","T3, Backup & Restore"], answer: 2, exp: "T0 (Mission Critical) requires RTO < 1 min and RPO = 0. Only Active-Active achieves this — both regions serve live traffic simultaneously, eliminating failover delay." },
+  { q: "Which Azure service provides sub-second Layer 7 failover without DNS TTL delays?", opts: ["Azure Traffic Manager","Azure Load Balancer Standard","Azure Front Door Premium","Azure Application Gateway"], answer: 2, exp: "Azure Front Door uses Anycast routing and maintains persistent connections at PoPs globally. Failover at the Front Door layer is sub-second, unlike DNS-based Traffic Manager which is limited by TTL propagation." },
+  { q: "You need RPO of 30 seconds for Azure VMs. Which replication type and frequency should you configure in ASR?", opts: ["App-consistent snapshots every 30 seconds","Crash-consistent replication (default 5-minute frequency) — ASR actually achieves ~30s RPO asynchronously","Synchronous replication only","Azure Backup Enhanced Policy"] , answer: 1, exp: "ASR's continuous replication achieves RPO as low as 30 seconds in optimal conditions regardless of the recovery point schedule. The 5-minute crash-consistent frequency is the recovery point retention interval, not the replication frequency." },
+  { q: "Under DORA (Digital Operational Resilience Act), what is the initial reporting deadline for a major ICT incident?", opts: ["72 hours (like GDPR)","24 hours (intermediate report)","4 hours (initial notification)","1 hour"], answer: 2, exp: "DORA requires an initial notification within 4 hours of classifying an incident as major. A more detailed intermediate report follows within 24 hours, and a final report within one month." },
+  { q: "You need to run a test of your ASR Recovery Plan WITHOUT impacting production traffic or replication. What is the correct approach?", opts: ["Execute a full Planned Failover and quickly failback","Execute Test Failover to an isolated VNET","Execute Unplanned Failover with the latest recovery point","Manually provision VMs in the DR region"] , answer: 1, exp: "ASR Test Failover creates VM clones in an isolated VNET in the DR region. It does not affect ongoing replication, does not change DNS/traffic routing, and is completely safe to run against production-replicated VMs." },
+  { q: "You are deploying a multi-region SQL Database. Which feature ensures your application connection string does NOT need to change during failover?", opts: ["Manual geo-replication with secondary endpoint","Active Geo-Replication read endpoint","Auto-Failover Groups with a single listener endpoint","Always On Availability Groups"], answer: 2, exp: "SQL Auto-Failover Groups provide a single read-write listener endpoint (e.g., fog-name.database.windows.net) that automatically resolves to whichever replica is the current primary — application connection strings never need updating." },
+  { q: "Which storage redundancy option combines BOTH availability zone resilience AND geo-replication to a paired region?", opts: ["LRS (Locally Redundant Storage)","GRS (Geo-Redundant Storage)","ZRS (Zone-Redundant Storage)","GZRS (Geo-Zone-Redundant Storage)"], answer: 3, exp: "GZRS replicates data synchronously across 3 AZs within the primary region (ZRS), AND asynchronously to the paired region (GRS). It is the highest durability option: 16 nines of durability." },
+  { q: "Your AKS workload must survive a complete region failure. What is the MINIMUM required approach for persistent volume data?", opts: ["AKS itself handles storage replication automatically","Only application-level replication or Azure Backup for AKS is needed — AKS does not replicate persistent volumes across regions","Use LRS storage classes and rely on Kubernetes replication","Deploy AKS with geo-replication enabled in the AKS settings"], answer: 1, exp: "AKS persistent volumes are region-scoped. Cross-region replication requires a separate solution: Azure Backup for AKS (supports cross-region restore), Velero with geo-replicated Azure Blob backend, or application-level replication. AKS itself provides no cross-region storage replication." },
+  { q: "Azure Chaos Studio requires an agent installed on VMs for some fault types. Which of the following fault types does NOT require an agent?", opts: ["CPU Pressure","Network Disconnect","Cosmos DB Regional Failover","Memory Pressure"], answer: 2, exp: "Cosmos DB Regional Failover (and other Service Faults targeting PaaS services) uses the Azure control plane API and requires no agent. Agent-based faults (CPU, memory, network, disk) require the Chaos Studio agent installed on the VM." },
+  { q: "During a DR drill, your measured RTO for a T1 workload was 47 minutes against a target of 15 minutes. According to best practice, what is the FIRST action to take?", opts: ["Accept the result — RTOs are aspirational targets","Log it as a P1 issue, investigate root cause, fix within 30 days, and schedule a re-test within 60 days","Immediately escalate to the board and declare a compliance breach","Extend the RTO target to 60 minutes to match reality"], answer: 1, exp: "A measured RTO that exceeds the documented target is a P1 BCDR finding. Per the improvement cycle, P1 issues require root cause analysis, remediation within 30 days, and a re-validation drill within 60 days. Never adjust targets to match poor results — fix the infrastructure." }
+];
+
+let current = 0, score = 0, answered = false;
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('qNum').textContent = current + 1;
+  document.getElementById('quizProgress').style.width = ((current + 1) / 10 * 100) + '%';
+  const html = `
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-options">
+      ${q.opts.map((o,i) => `<button class="quiz-opt" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback callout" id="qFeedback"></div>
+    <button class="quiz-next" id="qNext" onclick="nextQuestion()">${current < 9 ? 'Next Question →' : 'See Results'}</button>
+  `;
+  document.getElementById('quizContent').innerHTML = html;
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((o,i) => {
+    if (i === q.answer) o.classList.add('correct');
+    else if (i === idx && idx !== q.answer) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  if (idx === q.answer) score++;
+  const fb = document.getElementById('qFeedback');
+  fb.style.display = 'flex';
+  if (idx === q.answer) {
+    fb.className = 'quiz-feedback callout callout-success';
+    fb.innerHTML = '<span class="callout-icon">✅</span><div><strong style="color:var(--text)">Correct!</strong> ' + q.exp + '</div>';
+  } else {
+    fb.className = 'quiz-feedback callout callout-danger';
+    fb.innerHTML = '<span class="callout-icon">❌</span><div><strong style="color:var(--text)">Incorrect.</strong> ' + q.exp + '</div>';
+  }
+  document.getElementById('qNext').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  current++;
+  if (current < 10) {
+    renderQuestion();
+  } else {
+    document.getElementById('quiz-container').style.display = 'none';
+    const scoreEl = document.getElementById('quizScore');
+    scoreEl.style.display = 'block';
+    document.getElementById('finalScore').textContent = score + '/10';
+    const pct = score * 10;
+    let label = '';
+    if (pct >= 90) label = '🏆 Expert — Outstanding! You demonstrate mastery of Enterprise Azure BCP & DR.';
+    else if (pct >= 70) label = '⭐ Proficient — Strong understanding with a few areas to revisit.';
+    else if (pct >= 50) label = '📚 Developing — Good foundation; review the modules on missed questions.';
+    else label = '🔄 Beginner — Revisit the full training and retake the assessment.';
+    document.getElementById('scoreLabel').textContent = label;
+  }
+}
+
+function restartQuiz() {
+  current = 0; score = 0;
+  document.getElementById('quiz-container').style.display = 'block';
+  document.getElementById('quizScore').style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
