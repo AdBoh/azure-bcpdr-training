@@ -388,6 +388,17 @@
   .tag-green { background: rgba(0,229,160,0.1); color: var(--green); }
   .tag-gray { background: rgba(143,170,190,0.07); color: var(--text-muted); }
 
+  /* ── ENTERPRISE LAB ── */
+  .ep-complete-btn {
+    padding: 12px 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white; border: none; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+    transition: opacity 0.2s;
+  }
+  .ep-complete-btn:hover { opacity: 0.85; }
+  .ephase-panel { animation: fadeIn 0.3s ease; }
+
   @media(max-width:768px) {
     nav { padding: 0 16px; }
     .container { padding: 0 16px; }
@@ -410,6 +421,7 @@
     <button class="nav-tab" onclick="showPage('automation')">04 Automation</button>
     <button class="nav-tab" onclick="showPage('drills')">05 Drills</button>
     <button class="nav-tab" onclick="showPage('projects')">06 Projects</button>
+    <button class="nav-tab" onclick="showPage('enterprise')">07 Enterprise Lab</button>
     <button class="nav-tab" onclick="showPage('quiz')">Assessment</button>
   </div>
 </nav>
@@ -470,6 +482,12 @@
       <div class="module-name">Hands-On Projects</div>
       <div class="module-desc">5 real-world lab projects: deploy ASR, build failover automation, configure SQL Failover Groups, run Chaos Studio, and build a BCDR dashboard.</div>
       <div class="module-cta">Start building →</div>
+    </div>
+    <div class="module-card" style="--card-accent:#f59e0b" onclick="showPage('enterprise')">
+      <div class="module-num">Module 07</div>
+      <div class="module-name">Enterprise Failover Lab</div>
+      <div class="module-desc">Full-stack enterprise lab: AKS, App Service, SQL, Redis, Private DNS, Front Door, Logic Apps auto-trigger, and Chaos Studio failover/failback.</div>
+      <div class="module-cta">Start enterprise lab →</div>
     </div>
     <div class="module-card" style="--card-accent:#f472b6" onclick="showPage('quiz')">
       <div class="module-num">Assessment</div>
@@ -2031,6 +2049,1278 @@ az monitor scheduled-query create \
 </div>
 </div>
 
+<!-- ══════════════════════════ ENTERPRISE LAB ══════════════════════════ -->
+<div id="page-enterprise" class="page">
+<div class="container">
+  <div class="page-hero">
+    <div class="phase-badge" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)">⬡ Module 07 · Capstone</div>
+    <div class="page-title">Enterprise <em style="color:#f59e0b">Failover &amp; Failback</em> Lab</div>
+    <p class="page-subtitle">A full-stack enterprise BCDR lab deploying AKS, App Service, Azure SQL, Redis Cache, Private DNS Zones, Azure Front Door, Logic Apps auto-trigger, and Chaos Studio — with complete failover and failback procedures across two Azure regions.</p>
+  </div>
+
+  <!-- ARCHITECTURE OVERVIEW -->
+  <div class="section">
+    <div class="section-title">Architecture Blueprint</div>
+    <div class="arch-diagram">
+      <div style="text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:20px;letter-spacing:0.05em">ENTERPRISE MULTI-REGION BCDR TOPOLOGY</div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start">
+        <!-- PRIMARY -->
+        <div>
+          <div style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;padding:6px;background:rgba(0,196,255,0.08);border-radius:6px;border:1px solid rgba(0,196,255,0.2)">🟢 PRIMARY — West Europe</div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label blue">Ingress</div>
+            <div class="arch-row"><div class="arch-box ab-blue">Azure Front Door Premium</div><div class="arch-box ab-gray">WAF Policy</div></div>
+          </div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label orange">Compute</div>
+            <div class="arch-row"><div class="arch-box ab-orange">AKS Cluster (prod)</div><div class="arch-box ab-orange">App Service (API)</div></div>
+          </div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label green">Data</div>
+            <div class="arch-row"><div class="arch-box ab-green">SQL DB (Primary)</div><div class="arch-box ab-green">Redis (Primary)</div></div>
+          </div>
+          <div class="arch-layer">
+            <div class="arch-layer-label gold">Network</div>
+            <div class="arch-row"><div class="arch-box ab-gold">Private DNS Zone</div><div class="arch-box ab-gold">Private Endpoints</div></div>
+          </div>
+        </div>
+        <!-- MIDDLE -->
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-top:40px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">Replication</div>
+          <div style="color:var(--accent);font-size:20px">⇄</div>
+          <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;text-align:center">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#f59e0b;margin-bottom:4px">AUTOMATION</div>
+            <div style="font-size:11px;color:var(--text-dim)">Logic Apps</div>
+            <div style="font-size:11px;color:var(--text-dim)">Chaos Studio</div>
+            <div style="font-size:11px;color:var(--text-dim)">Azure Monitor</div>
+          </div>
+          <div style="color:var(--accent);font-size:20px">⇄</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">Failover</div>
+        </div>
+        <!-- DR -->
+        <div>
+          <div style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;padding:6px;background:rgba(255,95,61,0.08);border-radius:6px;border:1px solid rgba(255,95,61,0.2)">🔴 DR STANDBY — North Europe</div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label orange">Ingress</div>
+            <div class="arch-row"><div class="arch-box ab-orange">Front Door Origin (DR)</div><div class="arch-box ab-gray">WAF Policy</div></div>
+          </div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label orange">Compute</div>
+            <div class="arch-row"><div class="arch-box ab-gray">AKS Cluster (standby)</div><div class="arch-box ab-gray">App Service (DR)</div></div>
+          </div>
+          <div class="arch-layer" style="margin-bottom:10px">
+            <div class="arch-layer-label green">Data</div>
+            <div class="arch-row"><div class="arch-box ab-green">SQL DB (Secondary)</div><div class="arch-box ab-green">Redis (Geo-Replica)</div></div>
+          </div>
+          <div class="arch-layer">
+            <div class="arch-layer-label gold">Network</div>
+            <div class="arch-row"><div class="arch-box ab-gold">Private DNS Zone</div><div class="arch-box ab-gold">Private Endpoints</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE TRACKER -->
+  <div class="section">
+    <div class="section-title">Lab Phase Tracker</div>
+    <div class="card" style="padding:24px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px">
+        <div id="ep-badge-1" onclick="showEPhase(1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">🌐</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 1</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Networking</div>
+          <div class="ep-status" id="ep-status-1" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-2" onclick="showEPhase(2)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">☸️</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 2</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">AKS &amp; App Svc</div>
+          <div class="ep-status" id="ep-status-2" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-3" onclick="showEPhase(3)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">🗄️</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 3</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">SQL &amp; Redis</div>
+          <div class="ep-status" id="ep-status-3" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-4" onclick="showEPhase(4)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">🚀</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 4</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Front Door</div>
+          <div class="ep-status" id="ep-status-4" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-5" onclick="showEPhase(5)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">⚡</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 5</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Logic Apps</div>
+          <div class="ep-status" id="ep-status-5" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-6" onclick="showEPhase(6)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">💥</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 6</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Chaos &amp; Failover</div>
+          <div class="ep-status" id="ep-status-6" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-7" onclick="showEPhase(7)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">🔁</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 7</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Failback</div>
+          <div class="ep-status" id="ep-status-7" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+        <div id="ep-badge-8" onclick="showEPhase(8)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.2s;text-align:center">
+          <div style="font-size:18px;margin-bottom:6px">✅</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--text)">Phase 8</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Validation</div>
+          <div class="ep-status" id="ep-status-8" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)">PENDING</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div id="epOverallProgress" style="height:100%;background:linear-gradient(90deg,#f59e0b,#34d399);width:0%;transition:width 0.5s;border-radius:4px"></div>
+        </div>
+        <div id="epOverallPct" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#f59e0b;min-width:40px">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 1: NETWORKING ══ -->
+  <div id="ephase-1" class="ephase-panel">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">🌐 Phase 1 — Foundation Networking &amp; Private DNS Zones</div>
+    <div class="callout callout-info"><span class="callout-icon">ℹ️</span>All resources use private endpoints. Azure Private DNS Zones ensure name resolution works identically in both regions. This is the networking foundation every other phase depends on.</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">1a — Global Variables &amp; Resource Groups</span></div>
+      <div class="code-body"><code><span class="cmt">#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════
+#  ENTERPRISE BCDR LAB — Global Variables
+#  Primary:  West Europe  |  DR: North Europe
+# ═══════════════════════════════════════════════════════════════════</span>
+<span class="kw">export</span> <span class="var">LAB</span>=<span class="str">"entbcdr"</span>
+<span class="kw">export</span> <span class="var">PRIMARY_REGION</span>=<span class="str">"westeurope"</span>
+<span class="kw">export</span> <span class="var">DR_REGION</span>=<span class="str">"northeurope"</span>
+<span class="kw">export</span> <span class="var">PRIMARY_RG</span>=<span class="str">"rg-${LAB}-primary"</span>
+<span class="kw">export</span> <span class="var">DR_RG</span>=<span class="str">"rg-${LAB}-dr"</span>
+<span class="kw">export</span> <span class="var">SHARED_RG</span>=<span class="str">"rg-${LAB}-shared"</span>
+<span class="kw">export</span> <span class="var">SUB_ID</span>=<span class="fn">$(</span>az account show --query id -o tsv<span class="fn">)</span>
+<span class="kw">export</span> <span class="var">SUFFIX</span>=<span class="fn">$(</span>echo <span class="var">$SUB_ID</span> | cut -c1-6<span class="fn">)</span>   <span class="cmt"># unique suffix from sub ID</span>
+
+<span class="cmt"># Resource group creation</span>
+<span class="kw">for</span> rg <span class="kw">in</span> <span class="str">"$PRIMARY_RG:$PRIMARY_REGION"</span> <span class="str">"$DR_RG:$DR_REGION"</span> <span class="str">"$SHARED_RG:$PRIMARY_REGION"</span>; <span class="kw">do</span>
+  <span class="var">name</span>=<span class="fn">${rg%%:*}</span>; <span class="var">loc</span>=<span class="fn">${rg##*:}</span>
+  az group create --name <span class="var">$name</span> --location <span class="var">$loc</span> --tags project=entbcdr
+  <span class="fn">echo</span> <span class="str">"✅ Created: $name in $loc"</span>
+<span class="kw">done</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">1b — Hub VNets, Subnets &amp; VNet Peering</span></div>
+      <div class="code-body"><code><span class="cmt"># ── Primary VNet ──────────────────────────────────────────────────</span>
+az network vnet create --name <span class="str">"vnet-primary"</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> --address-prefix <span class="str">"10.10.0.0/16"</span>
+
+<span class="kw">for</span> subnet <span class="kw">in</span> \
+  <span class="str">"snet-aks:10.10.1.0/24"</span> \
+  <span class="str">"snet-app:10.10.2.0/24"</span> \
+  <span class="str">"snet-data:10.10.3.0/24"</span> \
+  <span class="str">"snet-pe:10.10.4.0/24"</span>; <span class="kw">do</span>
+  <span class="var">sname</span>=<span class="fn">${subnet%%:*}</span>; <span class="var">sprefix</span>=<span class="fn">${subnet##*:}</span>
+  az network vnet subnet create --name <span class="var">$sname</span> \
+    --vnet-name <span class="str">"vnet-primary"</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+    --address-prefix <span class="var">$sprefix</span>
+<span class="kw">done</span>
+
+<span class="cmt"># ── DR VNet ───────────────────────────────────────────────────────</span>
+az network vnet create --name <span class="str">"vnet-dr"</span> --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> --address-prefix <span class="str">"10.20.0.0/16"</span>
+
+<span class="kw">for</span> subnet <span class="kw">in</span> \
+  <span class="str">"snet-aks:10.20.1.0/24"</span> \
+  <span class="str">"snet-app:10.20.2.0/24"</span> \
+  <span class="str">"snet-data:10.20.3.0/24"</span> \
+  <span class="str">"snet-pe:10.20.4.0/24"</span>; <span class="kw">do</span>
+  <span class="var">sname</span>=<span class="fn">${subnet%%:*}</span>; <span class="var">sprefix</span>=<span class="fn">${subnet##*:}</span>
+  az network vnet subnet create --name <span class="var">$sname</span> \
+    --vnet-name <span class="str">"vnet-dr"</span> --resource-group <span class="var">$DR_RG</span> \
+    --address-prefix <span class="var">$sprefix</span>
+<span class="kw">done</span>
+
+<span class="cmt"># ── VNet Peering (bidirectional) ──────────────────────────────────</span>
+<span class="var">VNET_PRIMARY_ID</span>=<span class="fn">$(</span>az network vnet show -n vnet-primary -g <span class="var">$PRIMARY_RG</span> --query id -o tsv<span class="fn">)</span>
+<span class="var">VNET_DR_ID</span>=<span class="fn">$(</span>az network vnet show -n vnet-dr -g <span class="var">$DR_RG</span> --query id -o tsv<span class="fn">)</span>
+
+az network vnet peering create --name <span class="str">"peer-primary-to-dr"</span> \
+  --vnet-name vnet-primary --resource-group <span class="var">$PRIMARY_RG</span> \
+  --remote-vnet <span class="var">$VNET_DR_ID</span> --allow-vnet-access
+
+az network vnet peering create --name <span class="str">"peer-dr-to-primary"</span> \
+  --vnet-name vnet-dr --resource-group <span class="var">$DR_RG</span> \
+  --remote-vnet <span class="var">$VNET_PRIMARY_ID</span> --allow-vnet-access
+
+<span class="fn">echo</span> <span class="str">"✅ VNets and peering established"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">1c — Azure Private DNS Zones (linked to both VNets)</span></div>
+      <div class="code-body"><code><span class="cmt"># Private DNS zones — created ONCE, linked to BOTH VNets
+# This ensures identical name resolution in primary and DR regions</span>
+<span class="kw">declare</span> -a DNS_ZONES=(
+  <span class="str">"privatelink.database.windows.net"</span>
+  <span class="str">"privatelink.redis.cache.windows.net"</span>
+  <span class="str">"privatelink.azurecr.io"</span>
+  <span class="str">"privatelink.azurewebsites.net"</span>
+)
+
+<span class="kw">for</span> zone <span class="kw">in</span> <span class="str">"${DNS_ZONES[@]}"</span>; <span class="kw">do</span>
+  <span class="fn">echo</span> <span class="str">"Creating DNS zone: $zone"</span>
+  az network private-dns zone create \
+    --name <span class="var">$zone</span> \
+    --resource-group <span class="var">$SHARED_RG</span>
+
+  <span class="cmt"># Link to primary VNet</span>
+  az network private-dns link vnet create \
+    --name <span class="str">"link-primary-${zone//./-}"</span> \
+    --resource-group <span class="var">$SHARED_RG</span> \
+    --zone-name <span class="var">$zone</span> \
+    --virtual-network <span class="var">$VNET_PRIMARY_ID</span> \
+    --registration-enabled false
+
+  <span class="cmt"># Link to DR VNet — SAME DNS zone, different VNet</span>
+  az network private-dns link vnet create \
+    --name <span class="str">"link-dr-${zone//./-}"</span> \
+    --resource-group <span class="var">$SHARED_RG</span> \
+    --zone-name <span class="var">$zone</span> \
+    --virtual-network <span class="var">$VNET_DR_ID</span> \
+    --registration-enabled false
+
+  <span class="fn">echo</span> <span class="str">"  ✅ Zone $zone linked to both VNets"</span>
+<span class="kw">done</span></code></div>
+    </div>
+
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span><strong style="color:var(--gold)">DNS Design Note:</strong> Private DNS zones are a global resource linked to VNets. When you create a private endpoint in the DR region for SQL, it auto-registers in the same <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)">privatelink.database.windows.net</code> zone. After failover, the Failover Group listener endpoint DNS resolves to the new primary automatically — no DNS changes needed.</div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(1)" class="ep-complete-btn">Mark Phase 1 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 2: AKS & APP SERVICE ══ -->
+  <div id="ephase-2" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">☸️ Phase 2 — AKS Clusters &amp; App Service Deployment</div>
+    <div class="callout callout-info"><span class="callout-icon">ℹ️</span>Two independent AKS clusters deployed in each region using the same GitOps manifests. App Service is deployed in both regions. DR cluster starts with minimal node count (1 node) to save cost — scales up on failover trigger.</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">2a — AKS Primary Cluster (System + User node pools)</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">AKS_PRIMARY</span>=<span class="str">"aks-${LAB}-primary"</span>
+<span class="kw">export</span> <span class="var">AKS_DR</span>=<span class="str">"aks-${LAB}-dr"</span>
+
+<span class="cmt"># Primary AKS — production-sized (3-node system pool, 3-node user pool)</span>
+az aks create \
+  --name <span class="var">$AKS_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --node-count 3 \
+  --node-vm-size Standard_D4s_v3 \
+  --zones 1 2 3 \
+  --network-plugin azure \
+  --vnet-subnet-id <span class="fn">$(</span>az network vnet subnet show \
+    -g <span class="var">$PRIMARY_RG</span> --vnet-name vnet-primary -n snet-aks --query id -o tsv<span class="fn">)</span> \
+  --enable-managed-identity \
+  --enable-oidc-issuer \
+  --enable-workload-identity \
+  --enable-cluster-autoscaler \
+  --min-count 2 --max-count 10 \
+  --tier standard \
+  --tags bcdr-tier=T1 region=primary
+
+<span class="cmt"># Attach ACR to primary AKS</span>
+az aks update --name <span class="var">$AKS_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --attach-acr <span class="str">"acr${LAB}${SUFFIX}"</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Primary AKS created — $(date)"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">2b — AKS DR Cluster (Minimal — scales up on failover)</span></div>
+      <div class="code-body"><code><span class="cmt"># DR AKS — minimal footprint: 1 system node, autoscale on demand
+# User node pool starts at 0 — scaled to 3+ on failover trigger</span>
+az aks create \
+  --name <span class="var">$AKS_DR</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --node-count 1 \
+  --node-vm-size Standard_D4s_v3 \
+  --zones 1 2 3 \
+  --network-plugin azure \
+  --vnet-subnet-id <span class="fn">$(</span>az network vnet subnet show \
+    -g <span class="var">$DR_RG</span> --vnet-name vnet-dr -n snet-aks --query id -o tsv<span class="fn">)</span> \
+  --enable-managed-identity \
+  --enable-cluster-autoscaler \
+  --min-count 1 --max-count 10 \
+  --tier standard \
+  --tags bcdr-tier=T1 region=dr
+
+<span class="cmt"># Add a user node pool starting at 0 (cold) — Logic App scales this to 3 on failover</span>
+az aks nodepool add \
+  --name userpool \
+  --cluster-name <span class="var">$AKS_DR</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --node-count 0 \
+  --min-count 0 --max-count 10 \
+  --enable-cluster-autoscaler \
+  --node-vm-size Standard_D4s_v3
+
+<span class="fn">echo</span> <span class="str">"✅ DR AKS created with cold user pool"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">2c — App Service Plans &amp; Web Apps (Primary + DR)</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">APP_PRIMARY</span>=<span class="str">"app-${LAB}-api-primary-${SUFFIX}"</span>
+<span class="kw">export</span> <span class="var">APP_DR</span>=<span class="str">"app-${LAB}-api-dr-${SUFFIX}"</span>
+
+<span class="cmt"># Primary App Service Plan (P2v3, zone-redundant)</span>
+az appservice plan create \
+  --name <span class="str">"asp-${LAB}-primary"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --sku P2V3 --is-linux \
+  --zone-redundant
+
+az webapp create \
+  --name <span class="var">$APP_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --plan <span class="str">"asp-${LAB}-primary"</span> \
+  --runtime <span class="str">"NODE:18-lts"</span> \
+  --tags bcdr-tier=T1 role=primary
+
+<span class="cmt"># DR App Service Plan (P1v3 standby — scales on failover)</span>
+az appservice plan create \
+  --name <span class="str">"asp-${LAB}-dr"</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --sku P1V3 --is-linux
+
+az webapp create \
+  --name <span class="var">$APP_DR</span> \
+  --resource-group <span class="var">$DR_RG</span> \
+  --plan <span class="str">"asp-${LAB}-dr"</span> \
+  --runtime <span class="str">"NODE:18-lts"</span> \
+  --tags bcdr-tier=T1 role=dr
+
+<span class="cmt"># Integrate App Services into VNets (for private endpoint access)</span>
+az webapp vnet-integration add \
+  --name <span class="var">$APP_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --vnet vnet-primary --subnet snet-app
+
+az webapp vnet-integration add \
+  --name <span class="var">$APP_DR</span> --resource-group <span class="var">$DR_RG</span> \
+  --vnet vnet-dr --subnet snet-app
+
+<span class="fn">echo</span> <span class="str">"✅ App Services created and VNet-integrated"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">YAML</span><span class="code-file">2d — Sample AKS Application Manifests (deploy identically to both clusters)</span></div>
+      <div class="code-body"><code><span class="cmt"># deployment.yaml — same manifest deployed to both clusters via GitOps</span>
+<span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: enterprise-app
+  <span class="kw">namespace</span>: production
+<span class="kw">spec</span>:
+  <span class="kw">replicas</span>: <span class="num">3</span>
+  <span class="kw">selector</span>:
+    <span class="kw">matchLabels</span>: { app: enterprise-app }
+  <span class="kw">template</span>:
+    <span class="kw">metadata</span>:
+      <span class="kw">labels</span>: { app: enterprise-app }
+    <span class="kw">spec</span>:
+      <span class="kw">topologySpreadConstraints</span>:
+        - <span class="kw">maxSkew</span>: <span class="num">1</span>
+          <span class="kw">topologyKey</span>: kubernetes.io/hostname
+          <span class="kw">whenUnsatisfiable</span>: DoNotSchedule
+          <span class="kw">labelSelector</span>:
+            <span class="kw">matchLabels</span>: { app: enterprise-app }
+      <span class="kw">containers</span>:
+        - <span class="kw">name</span>: app
+          <span class="kw">image</span>: <span class="str">"acrentbcdr.azurecr.io/enterprise-app:latest"</span>
+          <span class="kw">ports</span>:
+            - <span class="kw">containerPort</span>: <span class="num">8080</span>
+          <span class="kw">env</span>:
+            - <span class="kw">name</span>: SQL_CONNECTION
+              <span class="kw">valueFrom</span>:
+                <span class="kw">secretKeyRef</span>: { name: db-secret, key: connectionString }
+            - <span class="kw">name</span>: REDIS_CONNECTION
+              <span class="kw">valueFrom</span>:
+                <span class="kw">secretKeyRef</span>: { name: redis-secret, key: connectionString }
+          <span class="kw">readinessProbe</span>:
+            <span class="kw">httpGet</span>: { path: /health, port: <span class="num">8080</span> }
+            <span class="kw">initialDelaySeconds</span>: <span class="num">5</span>
+            <span class="kw">periodSeconds</span>: <span class="num">10</span>
+          <span class="kw">livenessProbe</span>:
+            <span class="kw">httpGet</span>: { path: /health, port: <span class="num">8080</span> }
+            <span class="kw">initialDelaySeconds</span>: <span class="num">15</span>
+            <span class="kw">periodSeconds</span>: <span class="num">20</span>
+          <span class="kw">resources</span>:
+            <span class="kw">requests</span>: { cpu: 250m, memory: 256Mi }
+            <span class="kw">limits</span>:   { cpu: 500m, memory: 512Mi }
+---
+<span class="kw">apiVersion</span>: policy/v1
+<span class="kw">kind</span>: PodDisruptionBudget
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: enterprise-app-pdb
+<span class="kw">spec</span>:
+  <span class="kw">minAvailable</span>: <span class="num">2</span>
+  <span class="kw">selector</span>:
+    <span class="kw">matchLabels</span>: { app: enterprise-app }</code></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(2)" class="ep-complete-btn">Mark Phase 2 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 3: SQL & REDIS ══ -->
+  <div id="ephase-3" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">🗄️ Phase 3 — Azure SQL DB, Redis Cache &amp; Private Endpoints</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">3a — SQL Servers, Database &amp; Auto-Failover Group</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">SQL_PRIMARY</span>=<span class="str">"sql-${LAB}-primary-${SUFFIX}"</span>
+<span class="kw">export</span> <span class="var">SQL_DR</span>=<span class="str">"sql-${LAB}-dr-${SUFFIX}"</span>
+<span class="kw">export</span> <span class="var">SQL_FOG</span>=<span class="str">"fog-${LAB}"</span>
+<span class="kw">export</span> <span class="var">SQL_PASS</span>=<span class="str">"P@ssw0rd!Ent$(date +%Y)"</span>
+
+<span class="cmt"># ── Primary SQL Server ────────────────────────────────────────────</span>
+az sql server create -n <span class="var">$SQL_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  -l <span class="var">$PRIMARY_REGION</span> \
+  --admin-user sqladmin --admin-password <span class="var">$SQL_PASS</span> \
+  --minimal-tls-version 1.2 \
+  --restrict-outbound-network-access true
+
+<span class="cmt"># Disable public network access — private endpoint only</span>
+az sql server update -n <span class="var">$SQL_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --set publicNetworkAccess=Disabled
+
+<span class="cmt"># ── DR SQL Server ─────────────────────────────────────────────────</span>
+az sql server create -n <span class="var">$SQL_DR</span> -g <span class="var">$DR_RG</span> \
+  -l <span class="var">$DR_REGION</span> \
+  --admin-user sqladmin --admin-password <span class="var">$SQL_PASS</span> \
+  --minimal-tls-version 1.2
+
+az sql server update -n <span class="var">$SQL_DR</span> -g <span class="var">$DR_RG</span> \
+  --set publicNetworkAccess=Disabled
+
+<span class="cmt"># ── Production Database (Business Critical, zone-redundant) ───────</span>
+az sql db create \
+  -s <span class="var">$SQL_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  -n <span class="str">"db-enterprise"</span> \
+  --edition BusinessCritical \
+  --service-objective BC_Gen5_4 \
+  --zone-redundant true \
+  --backup-storage-redundancy Geo
+
+<span class="cmt"># ── Auto-Failover Group ───────────────────────────────────────────</span>
+az sql failover-group create \
+  --name <span class="var">$SQL_FOG</span> \
+  --server <span class="var">$SQL_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --partner-server <span class="var">$SQL_DR</span> --partner-resource-group <span class="var">$DR_RG</span> \
+  --failover-policy Automatic \
+  --grace-period 1 \
+  --add-db <span class="str">"db-enterprise"</span>
+
+<span class="fn">echo</span> <span class="str">"✅ SQL FOG created — listener: ${SQL_FOG}.database.windows.net"</span>
+
+<span class="cmt"># ── Private Endpoints for SQL (both regions) ─────────────────────</span>
+<span class="kw">for</span> region_info <span class="kw">in</span> \
+  <span class="str">"$PRIMARY_RG:vnet-primary:snet-pe:$SQL_PRIMARY:$PRIMARY_REGION"</span> \
+  <span class="str">"$DR_RG:vnet-dr:snet-pe:$SQL_DR:$DR_REGION"</span>; <span class="kw">do</span>
+  IFS=: read -r rg vnet snet server region &lt;&lt;&lt; <span class="str">"$region_info"</span>
+  <span class="var">SQL_ID</span>=<span class="fn">$(</span>az sql server show -n <span class="var">$server</span> -g <span class="var">$rg</span> --query id -o tsv<span class="fn">)</span>
+  az network private-endpoint create \
+    --name <span class="str">"pe-sql-${region}"</span> --resource-group <span class="var">$rg</span> --location <span class="var">$region</span> \
+    --vnet-name <span class="var">$vnet</span> --subnet <span class="var">$snet</span> \
+    --private-connection-resource-id <span class="var">$SQL_ID</span> \
+    --group-id sqlServer \
+    --connection-name <span class="str">"conn-sql-${region}"</span>
+  az network private-endpoint dns-zone-group create \
+    --name <span class="str">"dnsgroup-sql"</span> \
+    --endpoint-name <span class="str">"pe-sql-${region}"</span> --resource-group <span class="var">$rg</span> \
+    --private-dns-zone <span class="fn">$(</span>az network private-dns zone show \
+      -g <span class="var">$SHARED_RG</span> -n <span class="str">"privatelink.database.windows.net"</span> --query id -o tsv<span class="fn">)</span> \
+    --zone-name <span class="str">"privatelink.database.windows.net"</span>
+  <span class="fn">echo</span> <span class="str">"  ✅ Private endpoint created for SQL in $region"</span>
+<span class="kw">done</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">3b — Azure Cache for Redis (Premium + Geo-Replication)</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">REDIS_PRIMARY</span>=<span class="str">"redis-${LAB}-primary-${SUFFIX}"</span>
+<span class="kw">export</span> <span class="var">REDIS_DR</span>=<span class="str">"redis-${LAB}-dr-${SUFFIX}"</span>
+
+<span class="cmt"># ── Primary Redis (Premium P1 — required for geo-replication)</span>
+az redis create \
+  --name <span class="var">$REDIS_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --sku Premium --vm-size P1 \
+  --enable-non-ssl-port false \
+  --minimum-tls-version 1.2 \
+  --redis-version 6
+
+<span class="cmt"># ── DR Redis (same SKU — geo-replica requires matching tier)</span>
+az redis create \
+  --name <span class="var">$REDIS_DR</span> --resource-group <span class="var">$DR_RG</span> \
+  --location <span class="var">$DR_REGION</span> \
+  --sku Premium --vm-size P1 \
+  --enable-non-ssl-port false \
+  --minimum-tls-version 1.2 \
+  --redis-version 6
+
+<span class="cmt"># Wait for both Redis instances to be fully provisioned (10-15 min)</span>
+az redis wait --name <span class="var">$REDIS_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --created
+az redis wait --name <span class="var">$REDIS_DR</span> -g <span class="var">$DR_RG</span> --created
+
+<span class="cmt"># ── Link geo-replication: DR becomes geo-secondary of Primary ─────</span>
+<span class="var">REDIS_DR_ID</span>=<span class="fn">$(</span>az redis show -n <span class="var">$REDIS_DR</span> -g <span class="var">$DR_RG</span> --query id -o tsv<span class="fn">)</span>
+
+az redis geo-replication link \
+  --name <span class="var">$REDIS_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --secondary-name <span class="var">$REDIS_DR</span> \
+  --secondary-resource-group <span class="var">$DR_RG</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Redis geo-replication linked"</span>
+<span class="fn">echo</span> <span class="str">"   Primary: ${REDIS_PRIMARY}.redis.cache.windows.net:6380"</span>
+<span class="fn">echo</span> <span class="str">"   DR:      ${REDIS_DR}.redis.cache.windows.net:6380"</span>
+
+<span class="cmt"># ── Private Endpoints for Redis ───────────────────────────────────</span>
+<span class="kw">for</span> region_info <span class="kw">in</span> \
+  <span class="str">"$PRIMARY_RG:vnet-primary:snet-pe:$REDIS_PRIMARY"</span> \
+  <span class="str">"$DR_RG:vnet-dr:snet-pe:$REDIS_DR"</span>; <span class="kw">do</span>
+  IFS=: read -r rg vnet snet cache &lt;&lt;&lt; <span class="str">"$region_info"</span>
+  <span class="var">REDIS_ID</span>=<span class="fn">$(</span>az redis show -n <span class="var">$cache</span> -g <span class="var">$rg</span> --query id -o tsv<span class="fn">)</span>
+  az network private-endpoint create \
+    --name <span class="str">"pe-redis-${rg}"</span> --resource-group <span class="var">$rg</span> \
+    --vnet-name <span class="var">$vnet</span> --subnet <span class="var">$snet</span> \
+    --private-connection-resource-id <span class="var">$REDIS_ID</span> \
+    --group-id redisCache \
+    --connection-name <span class="str">"conn-redis-${rg}"</span>
+<span class="kw">done</span></code></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(3)" class="ep-complete-btn">Mark Phase 3 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 4: AZURE FRONT DOOR ══ -->
+  <div id="ephase-4" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">🚀 Phase 4 — Azure Front Door Premium &amp; WAF Configuration</div>
+    <div class="callout callout-info"><span class="callout-icon">ℹ️</span>Azure Front Door Premium is chosen over Traffic Manager because it provides sub-second Layer-7 failover via Anycast, supports Private Link origins (keeping App Service and AKS off the public internet), and includes built-in WAF with OWASP rule sets.</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">4a — Create Front Door Profile, Endpoint &amp; Origin Groups</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">AFD_PROFILE</span>=<span class="str">"afd-${LAB}-global"</span>
+<span class="kw">export</span> <span class="var">AFD_ENDPOINT</span>=<span class="str">"ep-${LAB}-${SUFFIX}"</span>
+
+<span class="cmt"># ── Create Front Door Premium Profile ────────────────────────────</span>
+az afd profile create \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --sku Premium_AzureFrontDoor
+
+<span class="cmt"># ── Create Endpoint (generates *.z01.azurefd.net hostname) ───────</span>
+az afd endpoint create \
+  --endpoint-name <span class="var">$AFD_ENDPOINT</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --enabled-state Enabled
+
+<span class="cmt"># ── Origin Group (health-probe config drives failover timing) ────</span>
+az afd origin-group create \
+  --origin-group-name <span class="str">"og-app-multiregion"</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --probe-request-type GET \
+  --probe-protocol Https \
+  --probe-interval-in-seconds 5 \
+  --probe-path <span class="str">"/health"</span> \
+  --sample-size 4 \
+  --successful-samples-required 3 \
+  --additional-latency-in-milliseconds 50
+
+<span class="cmt"># ── Primary Origin (Weight 1000 = active, Priority 1) ────────────</span>
+<span class="var">APP_PRIMARY_HOST</span>=<span class="fn">$(</span>az webapp show -n <span class="var">$APP_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --query defaultHostName -o tsv<span class="fn">)</span>
+
+az afd origin create \
+  --origin-name <span class="str">"origin-primary"</span> \
+  --origin-group-name <span class="str">"og-app-multiregion"</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --host-name <span class="var">$APP_PRIMARY_HOST</span> \
+  --origin-host-header <span class="var">$APP_PRIMARY_HOST</span> \
+  --http-port 80 --https-port 443 \
+  --priority 1 --weight 1000 \
+  --enabled-state Enabled
+
+<span class="cmt"># ── DR Origin (Weight 1000, Priority 2 — standby) ─────────────────</span>
+<span class="var">APP_DR_HOST</span>=<span class="fn">$(</span>az webapp show -n <span class="var">$APP_DR</span> -g <span class="var">$DR_RG</span> \
+  --query defaultHostName -o tsv<span class="fn">)</span>
+
+az afd origin create \
+  --origin-name <span class="str">"origin-dr"</span> \
+  --origin-group-name <span class="str">"og-app-multiregion"</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --host-name <span class="var">$APP_DR_HOST</span> \
+  --origin-host-header <span class="var">$APP_DR_HOST</span> \
+  --http-port 80 --https-port 443 \
+  --priority 2 --weight 1000 \
+  --enabled-state Enabled
+
+<span class="fn">echo</span> <span class="str">"✅ Front Door configured — P1 priority active, P2 on standby"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">4b — WAF Policy &amp; Route Rules</span></div>
+      <div class="code-body"><code><span class="cmt"># ── WAF Policy (Prevention mode, OWASP 3.2) ──────────────────────</span>
+az network front-door waf-policy create \
+  --name <span class="str">"waf${LAB}policy"</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --sku Premium_AzureFrontDoor \
+  --mode Prevention
+
+<span class="cmt"># Add managed OWASP rule set</span>
+az network front-door waf-policy managed-rules add \
+  --policy-name <span class="str">"waf${LAB}policy"</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --type DefaultRuleSet --version 2.0
+
+<span class="cmt"># ── Route — all HTTPS traffic → origin group ─────────────────────</span>
+az afd route create \
+  --route-name <span class="str">"route-app-default"</span> \
+  --endpoint-name <span class="var">$AFD_ENDPOINT</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --origin-group <span class="str">"og-app-multiregion"</span> \
+  --supported-protocols Https \
+  --patterns-to-match <span class="str">"/*"</span> \
+  --forwarding-protocol HttpsOnly \
+  --https-redirect Enabled \
+  --enable-compression
+
+<span class="cmt"># Get the Front Door hostname</span>
+<span class="var">AFD_HOSTNAME</span>=<span class="fn">$(</span>az afd endpoint show \
+  --endpoint-name <span class="var">$AFD_ENDPOINT</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --query hostName -o tsv<span class="fn">)</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Application accessible at: https://$AFD_HOSTNAME"</span>
+<span class="fn">echo</span> <span class="str">"   Health probe interval: 5s | Failover triggers after 3 failed probes"</span>
+<span class="fn">echo</span> <span class="str">"   Effective failover time: ~15s (3 probes × 5s)"</span></code></div>
+    </div>
+
+    <div class="callout callout-success"><span class="callout-icon">✅</span><strong style="color:var(--green)">Front Door Failover Math:</strong> With probe interval = 5s and successful-samples-required = 3, Front Door detects failure after 3 consecutive probe failures = <strong style="color:var(--text)">~15 seconds</strong>. Origin is then marked degraded and traffic shifts to priority-2 origin. This gives a practical RTO of 15–30 seconds for the ingress layer.</div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(4)" class="ep-complete-btn">Mark Phase 4 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 5: LOGIC APPS AUTO-TRIGGER ══ -->
+  <div id="ephase-5" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">⚡ Phase 5 — Logic Apps Auto-Trigger Failover Orchestration</div>
+    <div class="callout callout-info"><span class="callout-icon">ℹ️</span>Azure Logic Apps Standard orchestrates the full failover sequence when triggered by Azure Monitor. It handles: AKS DR node pool scale-out, SQL Failover Group switch, Redis link unlink, App Service scale-up, and sends a structured Teams notification with RTO tracking.</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">5a — Create Logic App Standard &amp; Managed Identity</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">LA_NAME</span>=<span class="str">"la-${LAB}-failover"</span>
+<span class="kw">export</span> <span class="var">LA_STORAGE</span>=<span class="str">"stla${LAB}${SUFFIX}"</span>
+
+<span class="cmt"># Storage account for Logic App Standard</span>
+az storage account create \
+  --name <span class="var">$LA_STORAGE</span> --resource-group <span class="var">$SHARED_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --sku Standard_LRS --allow-blob-public-access false
+
+<span class="cmt"># Logic App Standard (Standard tier for stateful workflows)</span>
+az logicapp create \
+  --name <span class="var">$LA_NAME</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --location <span class="var">$PRIMARY_REGION</span> \
+  --plan <span class="str">"asp-la-standard"</span> \
+  --storage-account <span class="var">$LA_STORAGE</span> \
+  --runtime node
+
+<span class="cmt"># Enable System-Assigned Managed Identity</span>
+az logicapp update \
+  --name <span class="var">$LA_NAME</span> --resource-group <span class="var">$SHARED_RG</span> \
+  --set identity.type=SystemAssigned
+
+<span class="var">LA_MI_ID</span>=<span class="fn">$(</span>az logicapp show -n <span class="var">$LA_NAME</span> -g <span class="var">$SHARED_RG</span> \
+  --query identity.principalId -o tsv<span class="fn">)</span>
+
+<span class="cmt"># Grant Contributor to both resource groups</span>
+<span class="kw">for</span> rg <span class="kw">in</span> <span class="var">$PRIMARY_RG</span> <span class="var">$DR_RG</span>; <span class="kw">do</span>
+  az role assignment create \
+    --assignee <span class="var">$LA_MI_ID</span> --role Contributor \
+    --scope <span class="str">"/subscriptions/$SUB_ID/resourceGroups/$rg"</span>
+<span class="kw">done</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Logic App created with Managed Identity: $LA_MI_ID"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JSON</span><span class="code-file">5b — Logic App Workflow Definition (failover-orchestrator.json)</span></div>
+      <div class="code-body"><code>{
+  <span class="str">"definition"</span>: {
+    <span class="str">"$schema"</span>: <span class="str">"https://schema.management.azure.com/schemas/2016-06-01/Microsoft.Logic/workflows.json"</span>,
+    <span class="str">"actions"</span>: {
+
+      <span class="str">"Initialize_FailoverStart"</span>: {
+        <span class="str">"type"</span>: <span class="str">"InitializeVariable"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"variables"</span>: [{
+            <span class="str">"name"</span>: <span class="str">"failoverStartTime"</span>,
+            <span class="str">"type"</span>: <span class="str">"string"</span>,
+            <span class="str">"value"</span>: <span class="str">"@{utcNow()}"</span>
+          }]
+        },
+        <span class="str">"runAfter"</span>: {}
+      },
+
+      <span class="str">"Step1_ScaleAKS_DR_NodePool"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"method"</span>: <span class="str">"PATCH"</span>,
+          <span class="str">"uri"</span>: <span class="str">"https://management.azure.com/subscriptions/@{variables('subId')}/resourceGroups/rg-entbcdr-dr/providers/Microsoft.ContainerService/managedClusters/aks-entbcdr-dr/agentPools/userpool?api-version=2023-10-01"</span>,
+          <span class="str">"body"</span>: { <span class="str">"properties"</span>: { <span class="str">"count"</span>: 3 } },
+          <span class="str">"authentication"</span>: { <span class="str">"type"</span>: <span class="str">"ManagedServiceIdentity"</span> }
+        },
+        <span class="str">"runAfter"</span>: { <span class="str">"Initialize_FailoverStart"</span>: [<span class="str">"Succeeded"</span>] }
+      },
+
+      <span class="str">"Step2_SQL_Failover_Group_Switch"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"method"</span>: <span class="str">"POST"</span>,
+          <span class="str">"uri"</span>: <span class="str">"https://management.azure.com/subscriptions/@{variables('subId')}/resourceGroups/rg-entbcdr-dr/providers/Microsoft.Sql/servers/sql-entbcdr-dr/failoverGroups/fog-entbcdr/failover?api-version=2021-11-01"</span>,
+          <span class="str">"authentication"</span>: { <span class="str">"type"</span>: <span class="str">"ManagedServiceIdentity"</span> }
+        },
+        <span class="str">"runAfter"</span>: { <span class="str">"Step1_ScaleAKS_DR_NodePool"</span>: [<span class="str">"Succeeded"</span>] }
+      },
+
+      <span class="str">"Step3_Unlink_Redis_GeoReplication"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"method"</span>: <span class="str">"DELETE"</span>,
+          <span class="str">"uri"</span>: <span class="str">"https://management.azure.com/subscriptions/@{variables('subId')}/resourceGroups/rg-entbcdr-dr/providers/Microsoft.Cache/redis/redis-entbcdr-dr/linkedServers/redis-entbcdr-primary?api-version=2023-04-01"</span>,
+          <span class="str">"authentication"</span>: { <span class="str">"type"</span>: <span class="str">"ManagedServiceIdentity"</span> }
+        },
+        <span class="str">"runAfter"</span>: { <span class="str">"Step2_SQL_Failover_Group_Switch"</span>: [<span class="str">"Succeeded"</span>] }
+      },
+
+      <span class="str">"Step4_Scale_Up_DR_AppService"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"method"</span>: <span class="str">"PUT"</span>,
+          <span class="str">"uri"</span>: <span class="str">"https://management.azure.com/subscriptions/@{variables('subId')}/resourceGroups/rg-entbcdr-dr/providers/Microsoft.Web/serverfarms/asp-entbcdr-dr?api-version=2022-03-01"</span>,
+          <span class="str">"body"</span>: { <span class="str">"sku"</span>: { <span class="str">"name"</span>: <span class="str">"P2V3"</span>, <span class="str">"capacity"</span>: 3 } },
+          <span class="str">"authentication"</span>: { <span class="str">"type"</span>: <span class="str">"ManagedServiceIdentity"</span> }
+        },
+        <span class="str">"runAfter"</span>: { <span class="str">"Step3_Unlink_Redis_GeoReplication"</span>: [<span class="str">"Succeeded"</span>] }
+      },
+
+      <span class="str">"Step5_Send_Teams_Alert"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: {
+          <span class="str">"method"</span>: <span class="str">"POST"</span>,
+          <span class="str">"uri"</span>: <span class="str">"@parameters('teamsWebhook')"</span>,
+          <span class="str">"body"</span>: {
+            <span class="str">"text"</span>: <span class="str">"🚨 **ENTERPRISE FAILOVER COMPLETE** | Start: @{variables('failoverStartTime')} | End: @{utcNow()} | AKS✅ SQL✅ Redis✅ AppSvc✅ | Action Required: Monitor DR region health"</span>
+          }
+        },
+        <span class="str">"runAfter"</span>: { <span class="str">"Step4_Scale_Up_DR_AppService"</span>: [<span class="str">"Succeeded"</span>, <span class="str">"Failed"</span>] }
+      }
+    },
+    <span class="str">"triggers"</span>: {
+      <span class="str">"manual"</span>: {
+        <span class="str">"type"</span>: <span class="str">"Request"</span>,
+        <span class="str">"kind"</span>: <span class="str">"Http"</span>,
+        <span class="str">"inputs"</span>: { <span class="str">"schema"</span>: {} }
+      }
+    }
+  }
+}</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">5c — Wire Azure Monitor Alert → Logic App Webhook</span></div>
+      <div class="code-body"><code><span class="cmt"># Get Logic App trigger callback URL</span>
+<span class="var">LA_TRIGGER_URL</span>=<span class="fn">$(</span>az logic workflow trigger list-callback-url \
+  --name <span class="var">$LA_NAME</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --trigger-name manual \
+  --query value -o tsv<span class="fn">)</span>
+
+<span class="cmt"># Create Action Group pointing to Logic App webhook</span>
+az monitor action-group create \
+  --name <span class="str">"ag-failover-logicapp"</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --action webhook \
+    name=<span class="str">"trigger-failover"</span> \
+    serviceUri=<span class="var">$LA_TRIGGER_URL</span> \
+    useCommonAlertSchema=true
+
+<span class="cmt"># Create Azure Monitor metric alert on App Service availability</span>
+<span class="var">APP_PRIMARY_ID</span>=<span class="fn">$(</span>az webapp show -n <span class="var">$APP_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --query id -o tsv<span class="fn">)</span>
+
+az monitor metrics alert create \
+  --name <span class="str">"alert-app-failover-trigger"</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span> \
+  --scopes <span class="var">$APP_PRIMARY_ID</span> \
+  --condition <span class="str">"avg Http5xx > 50"</span> \
+  --window-size 5m \
+  --evaluation-frequency 1m \
+  --severity 1 \
+  --auto-mitigate false \
+  --action <span class="fn">$(</span>az monitor action-group show \
+    -n <span class="str">"ag-failover-logicapp"</span> -g <span class="var">$SHARED_RG</span> --query id -o tsv<span class="fn">)</span>
+
+<span class="cmt"># Also wire Front Door health probe failures to the alert</span>
+az monitor activity-log alert create \
+  --name <span class="str">"alert-afd-origin-down"</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --scope <span class="str">"/subscriptions/$SUB_ID"</span> \
+  --condition category=ServiceHealth and properties.impactedServices[].ServiceName=<span class="str">'Azure Front Door'</span> \
+  --action-group <span class="fn">$(</span>az monitor action-group show -n <span class="str">"ag-failover-logicapp"</span> -g <span class="var">$SHARED_RG</span> --query id -o tsv<span class="fn">)</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Logic App auto-trigger wired to Azure Monitor alerts"</span></code></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(5)" class="ep-complete-btn">Mark Phase 5 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 6: CHAOS STUDIO + FAILOVER ══ -->
+  <div id="ephase-6" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">💥 Phase 6 — Chaos Studio Experiment &amp; Live Failover Execution</div>
+    <div class="callout callout-danger"><span class="callout-icon">🚨</span><strong style="color:var(--accent3)">Pre-Flight Check:</strong> Before running this phase, verify Front Door health probes show both origins healthy, SQL Failover Group shows "Normal" replication, Redis geo-link is active, and all Logic App actions are tested with a dry-run (use the Logic App "Run Trigger" test button).</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">6a — Pre-Failover Health Checks</span></div>
+      <div class="code-body"><code><span class="fn">echo</span> <span class="str">"═══════════════════════════════════════════════"</span>
+<span class="fn">echo</span> <span class="str">"  PRE-FAILOVER HEALTH CHECKS — $(date -u '+%Y-%m-%d %H:%M UTC')"</span>
+<span class="fn">echo</span> <span class="str">"═══════════════════════════════════════════════"</span>
+
+<span class="cmt"># 1. SQL Failover Group replication health</span>
+<span class="fn">echo</span> <span class="str">"\n[1/5] SQL Failover Group Status:"</span>
+az sql failover-group show \
+  -n <span class="var">$SQL_FOG</span> -s <span class="var">$SQL_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --query "{Role:replicationRole, State:replicationState, Location:location}" \
+  --output table
+
+<span class="cmt"># 2. Redis geo-replication health</span>
+<span class="fn">echo</span> <span class="str">"\n[2/5] Redis Geo-Replication:"</span>
+az redis show -n <span class="var">$REDIS_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --query "{ProvisioningState:provisioningState, Tier:sku.name, LinkedServers:linkedServers}" \
+  --output table
+
+<span class="cmt"># 3. AKS cluster status</span>
+<span class="fn">echo</span> <span class="str">"\n[3/5] AKS Cluster Health:"</span>
+<span class="kw">for</span> aks <span class="kw">in</span> <span class="str">"$AKS_PRIMARY:$PRIMARY_RG"</span> <span class="str">"$AKS_DR:$DR_RG"</span>; <span class="kw">do</span>
+  IFS=: read -r name rg &lt;&lt;&lt; <span class="str">"$aks"</span>
+  az aks show -n <span class="var">$name</span> -g <span class="var">$rg</span> \
+    --query "{Name:name, ProvisioningState:provisioningState, AgentPoolProfiles:agentPoolProfiles[].{name:name,count:count}}" \
+    --output json | python3 -m json.tool
+<span class="kw">done</span>
+
+<span class="cmt"># 4. Front Door origin health</span>
+<span class="fn">echo</span> <span class="str">"\n[4/5] Front Door Origin Health:"</span>
+az afd origin list \
+  --origin-group-name <span class="str">"og-app-multiregion"</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --query "[].{Name:name, Priority:priority, EnabledState:enabledState}" \
+  --output table
+
+<span class="cmt"># 5. App Service health</span>
+<span class="fn">echo</span> <span class="str">"\n[5/5] App Service Status:"</span>
+<span class="kw">for</span> app <span class="kw">in</span> <span class="str">"$APP_PRIMARY:$PRIMARY_RG"</span> <span class="str">"$APP_DR:$DR_RG"</span>; <span class="kw">do</span>
+  IFS=: read -r name rg &lt;&lt;&lt; <span class="str">"$app"</span>
+  az webapp show -n <span class="var">$name</span> -g <span class="var">$rg</span> \
+    --query "{Name:name, State:state, OutboundIps:outboundIpAddresses}" -o table
+<span class="kw">done</span>
+
+<span class="fn">echo</span> <span class="str">"\n✅ Pre-flight checks complete — proceed to chaos experiment"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JSON</span><span class="code-file">6b — Chaos Studio Experiment (Multi-fault: AKS Pod Kill + App Service Stop + CPU Pressure)</span></div>
+      <div class="code-body"><code><span class="cmt">// chaos-experiment-enterprise.json</span>
+{
+  <span class="str">"name"</span>: <span class="str">"chaos-enterprise-regional-failure"</span>,
+  <span class="str">"location"</span>: <span class="str">"westeurope"</span>,
+  <span class="str">"identity"</span>: { <span class="str">"type"</span>: <span class="str">"SystemAssigned"</span> },
+  <span class="str">"properties"</span>: {
+    <span class="str">"steps"</span>: [
+      {
+        <span class="str">"name"</span>: <span class="str">"Step1-Parallel-App-Faults"</span>,
+        <span class="str">"branches"</span>: [
+          {
+            <span class="str">"name"</span>: <span class="str">"Branch-AKS-PodKill"</span>,
+            <span class="str">"actions"</span>: [{
+              <span class="str">"name"</span>: <span class="str">"urn:csci:microsoft:azureKubernetesServiceChaosMesh:podChaos/2.1"</span>,
+              <span class="str">"type"</span>: <span class="str">"continuous"</span>,
+              <span class="str">"duration"</span>: <span class="str">"PT8M"</span>,
+              <span class="str">"parameters"</span>: [
+                { <span class="str">"key"</span>: <span class="str">"jsonSpec"</span>, <span class="str">"value"</span>: <span class="str">"{\"action\":\"pod-kill\",\"mode\":\"all\",\"selector\":{\"namespaces\":[\"production\"],\"labelSelectors\":{\"app\":\"enterprise-app\"}}}"</span> }
+              ],
+              <span class="str">"selectorId"</span>: <span class="str">"aks-primary-selector"</span>
+            }]
+          },
+          {
+            <span class="str">"name"</span>: <span class="str">"Branch-AppService-Stop"</span>,
+            <span class="str">"actions"</span>: [{
+              <span class="str">"name"</span>: <span class="str">"urn:csci:microsoft:appService:stop/1.0"</span>,
+              <span class="str">"type"</span>: <span class="str">"continuous"</span>,
+              <span class="str">"duration"</span>: <span class="str">"PT8M"</span>,
+              <span class="str">"parameters"</span>: [],
+              <span class="str">"selectorId"</span>: <span class="str">"appservice-primary-selector"</span>
+            }]
+          },
+          {
+            <span class="str">"name"</span>: <span class="str">"Branch-CPU-Pressure"</span>,
+            <span class="str">"actions"</span>: [{
+              <span class="str">"name"</span>: <span class="str">"urn:csci:microsoft:agent:cpuPressure/1.0"</span>,
+              <span class="str">"type"</span>: <span class="str">"continuous"</span>,
+              <span class="str">"duration"</span>: <span class="str">"PT5M"</span>,
+              <span class="str">"parameters"</span>: [{ <span class="str">"key"</span>: <span class="str">"pressureLevel"</span>, <span class="str">"value"</span>: <span class="str">"90"</span> }],
+              <span class="str">"selectorId"</span>: <span class="str">"appservice-primary-selector"</span>
+            }]
+          }
+        ]
+      }
+    ],
+    <span class="str">"selectors"</span>: [
+      {
+        <span class="str">"id"</span>: <span class="str">"aks-primary-selector"</span>,
+        <span class="str">"type"</span>: <span class="str">"List"</span>,
+        <span class="str">"targets"</span>: [{ <span class="str">"id"</span>: <span class="str">"&lt;AKS_RESOURCE_ID&gt;/providers/Microsoft.Chaos/targets/Microsoft-AzureKubernetesServiceChaosMesh"</span>, <span class="str">"type"</span>: <span class="str">"ChaosTarget"</span> }]
+      },
+      {
+        <span class="str">"id"</span>: <span class="str">"appservice-primary-selector"</span>,
+        <span class="str">"type"</span>: <span class="str">"List"</span>,
+        <span class="str">"targets"</span>: [{ <span class="str">"id"</span>: <span class="str">"&lt;APP_SERVICE_RESOURCE_ID&gt;/providers/Microsoft.Chaos/targets/Microsoft-AppService"</span>, <span class="str">"type"</span>: <span class="str">"ChaosTarget"</span> }]
+      }
+    ]
+  }
+}</code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">6c — Execute Chaos Experiment &amp; Observe Auto-Failover</span></div>
+      <div class="code-body"><code><span class="cmt"># Deploy and start chaos experiment</span>
+az rest --method PUT \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/chaos-enterprise-regional-failure?api-version=2023-11-01"</span> \
+  --body @chaos-experiment-enterprise.json
+
+<span class="cmt"># Grant experiment MI the required roles</span>
+<span class="var">CHAOS_MI</span>=<span class="fn">$(</span>az rest --method GET \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/chaos-enterprise-regional-failure?api-version=2023-11-01"</span> \
+  --query identity.principalId -o tsv<span class="fn">)</span>
+
+az role assignment create --assignee <span class="var">$CHAOS_MI</span> \
+  --role <span class="str">"Azure Kubernetes Service Cluster Admin Role"</span> \
+  --scope <span class="fn">$(</span>az aks show -n <span class="var">$AKS_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --query id -o tsv<span class="fn">)</span>
+
+az role assignment create --assignee <span class="var">$CHAOS_MI</span> \
+  --role <span class="str">"Website Contributor"</span> \
+  --scope <span class="fn">$(</span>az webapp show -n <span class="var">$APP_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --query id -o tsv<span class="fn">)</span>
+
+<span class="cmt"># ── RECORD T0 AND START EXPERIMENT ───────────────────────────────</span>
+<span class="kw">export</span> <span class="var">T0</span>=<span class="fn">$(</span>date +%s<span class="fn">)</span>
+<span class="fn">echo</span> <span class="str">"T0: $(date -u '+%H:%M:%S UTC') — Chaos experiment STARTING"</span>
+
+az rest --method POST \
+  --url <span class="str">"https://management.azure.com/subscriptions/$SUB_ID/resourceGroups/$PRIMARY_RG/providers/Microsoft.Chaos/experiments/chaos-enterprise-regional-failure/start?api-version=2023-11-01"</span>
+
+<span class="cmt"># ── MONITOR FAILOVER PROGRESSION ─────────────────────────────────</span>
+<span class="kw">while</span> true; <span class="kw">do</span>
+  <span class="fn">echo</span> <span class="str">"──────────────────── $(date -u '+%H:%M:%S UTC') ────────────────────"</span>
+
+  <span class="cmt"># Front Door origin health</span>
+  az afd origin list \
+    --origin-group-name <span class="str">"og-app-multiregion"</span> \
+    --profile-name <span class="var">$AFD_PROFILE</span> \
+    --resource-group <span class="var">$SHARED_RG</span> \
+    --query "[].{Origin:name,Priority:priority,State:enabledState}" \
+    --output table 2&gt;/dev/null
+
+  <span class="cmt"># SQL current primary</span>
+  az sql failover-group show \
+    -n <span class="var">$SQL_FOG</span> -s <span class="var">$SQL_DR</span> -g <span class="var">$DR_RG</span> \
+    --query "{FOG:name,Role:replicationRole}" --output table 2&gt;/dev/null
+
+  <span class="cmt"># AKS DR node count</span>
+  az aks nodepool show \
+    --cluster-name <span class="var">$AKS_DR</span> --resource-group <span class="var">$DR_RG</span> --name userpool \
+    --query <span class="str">"{Pool:name,Count:count}"</span> --output table 2&gt;/dev/null
+
+  <span class="fn">echo</span> <span class="str">"Elapsed: $(( $(date +%s) - T0 ))s | Ctrl+C to stop monitoring"</span>
+  <span class="fn">sleep</span> <span class="num">20</span>
+<span class="kw">done</span></code></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(6)" class="ep-complete-btn">Mark Phase 6 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 7: FAILBACK ══ -->
+  <div id="ephase-7" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">🔁 Phase 7 — Structured Failback to Primary Region</div>
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span>Failback is a planned operation. The DR region is now production. Do not rush. Verify the primary region is fully healthy before initiating failback. All data written to DR during the outage must be reconciled.</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">7a — Verify Primary Region Recovery</span></div>
+      <div class="code-body"><code><span class="fn">echo</span> <span class="str">"══════════════════════════════════════════════"</span>
+<span class="fn">echo</span> <span class="str">"  FAILBACK PRE-CHECKS — $(date -u '+%Y-%m-%d %H:%M UTC')"</span>
+<span class="fn">echo</span> <span class="str">"══════════════════════════════════════════════"</span>
+
+<span class="cmt"># 1. Confirm primary App Service is running again</span>
+az webapp start --name <span class="var">$APP_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span>
+az webapp show -n <span class="var">$APP_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --query "{State:state, HealthCheckPath:siteConfig.healthCheckPath}" --output table
+
+<span class="cmt"># 2. Verify App Service health endpoint responds</span>
+<span class="var">APP_URL</span>=<span class="fn">$(</span>az webapp show -n <span class="var">$APP_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --query defaultHostName -o tsv<span class="fn">)</span>
+curl -s --max-time 10 https://<span class="var">$APP_URL</span>/health \
+  && <span class="fn">echo</span> <span class="str">"✅ Primary App Service healthy"</span> \
+  || <span class="fn">echo</span> <span class="str">"❌ Primary App Service NOT healthy — do NOT proceed with failback"</span>
+
+<span class="cmt"># 3. Restart AKS primary pods (ensure they recovered after chaos)</span>
+az aks get-credentials -n <span class="var">$AKS_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> --overwrite-existing
+kubectl rollout restart deployment/enterprise-app -n production
+kubectl rollout status deployment/enterprise-app -n production --timeout=120s
+
+<span class="cmt"># 4. Check SQL re-sync (DR was primary during outage — need reverse sync)</span>
+<span class="fn">echo</span> <span class="str">"\nSQL Failover Group — current state:"</span>
+az sql failover-group show \
+  -n <span class="var">$SQL_FOG</span> -s <span class="var">$SQL_DR</span> -g <span class="var">$DR_RG</span> \
+  --query "{Role:replicationRole, SyncState:partnerServers[0].replicationState}" \
+  --output table
+
+<span class="fn">echo</span> <span class="str">"\n⏳ Wait for replicationState = SYNCHRONIZED before proceeding to failback"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">7b — Execute Planned Failback (All Services)</span></div>
+      <div class="code-body"><code><span class="kw">export</span> <span class="var">FAILBACK_START</span>=<span class="fn">$(</span>date +%s<span class="fn">)</span>
+<span class="fn">echo</span> <span class="str">"🔁 FAILBACK STARTED: $(date -u '+%H:%M:%S UTC')"</span>
+
+<span class="cmt"># ── Step 1: Re-establish Redis geo-replication (DR→Primary direction) ─</span>
+<span class="fn">echo</span> <span class="str">"[1/5] Re-linking Redis geo-replication (DR as primary, West EU as secondary)..."</span>
+<span class="cmt"># Note: After unlinking, both instances are independent.
+# For failback: re-link with DR as primary (it has latest data) and primary as secondary</span>
+az redis geo-replication link \
+  --name <span class="var">$REDIS_DR</span> --resource-group <span class="var">$DR_RG</span> \
+  --secondary-name <span class="var">$REDIS_PRIMARY</span> \
+  --secondary-resource-group <span class="var">$PRIMARY_RG</span>
+
+<span class="cmt"># ── Step 2: SQL Failover Group — failback to original primary ─────────</span>
+<span class="fn">echo</span> <span class="str">"[2/5] SQL Failover Group failback..."</span>
+az sql failover-group set-primary \
+  --name <span class="var">$SQL_FOG</span> \
+  --server <span class="var">$SQL_PRIMARY</span> \
+  --resource-group <span class="var">$PRIMARY_RG</span>
+
+<span class="fn">echo</span> <span class="str">"      ⏳ Waiting for SQL primary to be confirmed..."</span>
+az sql failover-group show -n <span class="var">$SQL_FOG</span> -s <span class="var">$SQL_PRIMARY</span> -g <span class="var">$PRIMARY_RG</span> \
+  --query "{NewPrimary:replicationRole, Server:location}" --output table
+
+<span class="cmt"># ── Step 3: Scale Down DR AKS user pool (back to standby) ─────────────</span>
+<span class="fn">echo</span> <span class="str">"[3/5] Scaling DR AKS user pool back to 0..."</span>
+az aks nodepool update \
+  --cluster-name <span class="var">$AKS_DR</span> --resource-group <span class="var">$DR_RG</span> --name userpool \
+  --update-cluster-autoscaler --min-count 0 --max-count 10
+az aks nodepool scale \
+  --cluster-name <span class="var">$AKS_DR</span> --resource-group <span class="var">$DR_RG</span> --name userpool \
+  --node-count 0
+
+<span class="cmt"># ── Step 4: Scale Down DR App Service Plan (back to P1V3 standby) ─────</span>
+<span class="fn">echo</span> <span class="str">"[4/5] Scaling down DR App Service plan..."</span>
+az appservice plan update \
+  --name <span class="str">"asp-${LAB}-dr"</span> --resource-group <span class="var">$DR_RG</span> \
+  --sku P1V3 --number-of-workers 1
+
+<span class="cmt"># ── Step 5: Front Door — primary origin priority restored ──────────────</span>
+<span class="fn">echo</span> <span class="str">"[5/5] Front Door — confirming primary origin health..."</span>
+az afd origin list \
+  --origin-group-name <span class="str">"og-app-multiregion"</span> \
+  --profile-name <span class="var">$AFD_PROFILE</span> \
+  --resource-group <span class="var">$SHARED_RG</span> \
+  --query "[].{Origin:name,Priority:priority,State:enabledState}" \
+  --output table
+
+<span class="cmt"># NOTE: Front Door auto-recovers priority-1 origin when health probes pass again</span>
+<span class="cmt"># No manual Front Door change needed — it's fully automatic</span>
+
+<span class="var">ELAPSED</span>=<span class="fn">$(( $(date +%s) - FAILBACK_START ))</span>
+<span class="fn">echo</span> <span class="str">"✅ FAILBACK COMPLETE — Total time: ${ELAPSED}s ($(( ELAPSED/60 ))m $(( ELAPSED%60 ))s)"</span>
+<span class="fn">echo</span> <span class="str">"   SQL Primary: West Europe ✅"</span>
+<span class="fn">echo</span> <span class="str">"   Redis Primary: West Europe ✅"</span>
+<span class="fn">echo</span> <span class="str">"   AKS DR pool: scaled to 0 (cold standby) ✅"</span>
+<span class="fn">echo</span> <span class="str">"   Front Door: priority-1 origin auto-recovers ✅"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">7c — Restore Redis to Original Replication Direction</span></div>
+      <div class="code-body"><code><span class="cmt"># After failback data sync is complete, unlink and re-link
+# in the original direction (Primary as primary, DR as secondary)</span>
+
+<span class="fn">echo</span> <span class="str">"Re-establishing original Redis replication direction..."</span>
+<span class="cmt"># Unlink the failback link (DR primary → West EU secondary)</span>
+az redis geo-replication unlink \
+  --name <span class="var">$REDIS_DR</span> --resource-group <span class="var">$DR_RG</span> \
+  --linked-server-name <span class="var">$REDIS_PRIMARY</span>
+
+<span class="cmt"># Allow caches to stabilise (60-90 seconds)</span>
+<span class="fn">sleep</span> <span class="num">90</span>
+
+<span class="cmt"># Re-link in original direction: Primary as primary, DR as secondary</span>
+az redis geo-replication link \
+  --name <span class="var">$REDIS_PRIMARY</span> --resource-group <span class="var">$PRIMARY_RG</span> \
+  --secondary-name <span class="var">$REDIS_DR</span> \
+  --secondary-resource-group <span class="var">$DR_RG</span>
+
+<span class="fn">echo</span> <span class="str">"✅ Redis replication restored to original direction"</span>
+<span class="fn">echo</span> <span class="str">"   Primary (read/write): $REDIS_PRIMARY"</span>
+<span class="fn">echo</span> <span class="str">"   Geo-replica (read):   $REDIS_DR"</span></code></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button onclick="completeEPhase(7)" class="ep-complete-btn">Mark Phase 7 Complete ✓</button></div>
+  </div>
+  </div>
+
+  <!-- ══ PHASE 8: VALIDATION & CLEANUP ══ -->
+  <div id="ephase-8" class="ephase-panel" style="display:none">
+  <div class="section">
+    <div class="section-title" style="color:#f59e0b">✅ Phase 8 — Post-Failover Validation &amp; Cleanup</div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">8a — Full Stack Validation Suite</span></div>
+      <div class="code-body"><code><span class="fn">echo</span> <span class="str">"════════════════════════════════════════════════════"</span>
+<span class="fn">echo</span> <span class="str">"  ENTERPRISE BCDR VALIDATION SUITE"</span>
+<span class="fn">echo</span> <span class="str">"  $(date -u '+%Y-%m-%d %H:%M UTC')"</span>
+<span class="fn">echo</span> <span class="str">"════════════════════════════════════════════════════"</span>
+<span class="var">PASS</span>=<span class="num">0</span>; <span class="var">FAIL</span>=<span class="num">0</span>
+
+<span class="fn">check</span>() {
+  <span class="kw">if</span> eval <span class="str">"$2"</span> &amp;&gt;/dev/null; <span class="kw">then</span>
+    <span class="fn">echo</span> <span class="str">"  ✅ PASS: $1"</span>; <span class="fn">((PASS++))</span>
+  <span class="kw">else</span>
+    <span class="fn">echo</span> <span class="str">"  ❌ FAIL: $1"</span>; <span class="fn">((FAIL++))</span>
+  <span class="kw">fi</span>
+}
+
+<span class="fn">echo</span> <span class="str">"\n[NETWORKING]"</span>
+<span class="fn">check</span> <span class="str">"VNet peering active"</span> \
+  <span class="str">"az network vnet peering show -n peer-primary-to-dr --vnet-name vnet-primary -g $PRIMARY_RG --query 'peeringState' | grep -q Connected"</span>
+<span class="fn">check</span> <span class="str">"Private DNS zones linked to primary VNet"</span> \
+  <span class="str">"az network private-dns link vnet list -g $SHARED_RG -z privatelink.database.windows.net --query '[0].virtualNetworkLinkState' | grep -q Completed"</span>
+
+<span class="fn">echo</span> <span class="str">"\n[FRONT DOOR]"</span>
+<span class="fn">check</span> <span class="str">"Front Door endpoint enabled"</span> \
+  <span class="str">"az afd endpoint show --endpoint-name $AFD_ENDPOINT --profile-name $AFD_PROFILE -g $SHARED_RG --query 'enabledState' | grep -q Enabled"</span>
+<span class="fn">check</span> <span class="str">"Primary origin priority = 1"</span> \
+  <span class="str">"az afd origin show --origin-name origin-primary --origin-group-name og-app-multiregion --profile-name $AFD_PROFILE -g $SHARED_RG --query 'priority' | grep -q 1"</span>
+
+<span class="fn">echo</span> <span class="str">"\n[AKS]"</span>
+<span class="fn">check</span> <span class="str">"Primary AKS running"</span> \
+  <span class="str">"az aks show -n $AKS_PRIMARY -g $PRIMARY_RG --query 'powerState.code' | grep -q Running"</span>
+<span class="fn">check</span> <span class="str">"Primary AKS pods healthy"</span> \
+  <span class="str">"kubectl get pods -n production -l app=enterprise-app --no-headers | grep -v Running | wc -l | grep -q '^0$'"</span>
+<span class="fn">check</span> <span class="str">"DR AKS user pool at 0 (standby)"</span> \
+  <span class="str">"az aks nodepool show --cluster-name $AKS_DR -g $DR_RG --name userpool --query 'count' | grep -q '^0$'"</span>
+
+<span class="fn">echo</span> <span class="str">"\n[SQL DATABASE]"</span>
+<span class="fn">check</span> <span class="str">"SQL FOG primary = West Europe"</span> \
+  <span class="str">"az sql failover-group show -n $SQL_FOG -s $SQL_PRIMARY -g $PRIMARY_RG --query 'replicationRole' | grep -q Primary"</span>
+<span class="fn">check</span> <span class="str">"SQL replication state = SYNCHRONIZED"</span> \
+  <span class="str">"az sql failover-group show -n $SQL_FOG -s $SQL_PRIMARY -g $PRIMARY_RG --query 'partnerServers[0].replicationState' | grep -q SYNCHRONIZED"</span>
+
+<span class="fn">echo</span> <span class="str">"\n[REDIS]"</span>
+<span class="fn">check</span> <span class="str">"Redis primary = West Europe (geo-primary)"</span> \
+  <span class="str">"az redis show -n $REDIS_PRIMARY -g $PRIMARY_RG --query 'linkedServers[0].serverRole' | grep -q Primary"</span>
+
+<span class="fn">echo</span> <span class="str">"\n[LOGIC APP]"</span>
+<span class="fn">check</span> <span class="str">"Logic App enabled"</span> \
+  <span class="str">"az logicapp show -n $LA_NAME -g $SHARED_RG --query 'state' | grep -q Running"</span>
+
+<span class="fn">echo</span> <span class="str">"\n════════════════════════════════════════════════════"</span>
+<span class="fn">echo</span> <span class="str">"  RESULTS: $PASS passed | $FAIL failed"</span>
+<span class="kw">if</span> [ <span class="var">$FAIL</span> -eq <span class="num">0</span> ]; <span class="kw">then</span>
+  <span class="fn">echo</span> <span class="str">"  🏆 ALL CHECKS PASSED — Enterprise BCDR lab complete"</span>
+<span class="kw">else</span>
+  <span class="fn">echo</span> <span class="str">"  ❌ $FAIL check(s) failed — investigate before closing the lab"</span>
+<span class="kw">fi</span>
+<span class="fn">echo</span> <span class="str">"════════════════════════════════════════════════════"</span></code></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">BASH</span><span class="code-file">8b — Lab Cleanup (save costs when done)</span></div>
+      <div class="code-body"><code><span class="fn">echo</span> <span class="str">"⚠️  This will DELETE all lab resources. Type 'yes' to confirm."</span>
+<span class="fn">read</span> -r confirm
+<span class="kw">if</span> [ <span class="str">"$confirm"</span> != <span class="str">"yes"</span> ]; <span class="kw">then</span>
+  <span class="fn">echo</span> <span class="str">"Cleanup cancelled."</span>; <span class="kw">exit</span> 0
+<span class="kw">fi</span>
+
+<span class="cmt"># Delete all resource groups (parallel deletion)</span>
+<span class="kw">for</span> rg <span class="kw">in</span> <span class="var">$PRIMARY_RG</span> <span class="var">$DR_RG</span> <span class="var">$SHARED_RG</span>; <span class="kw">do</span>
+  <span class="fn">echo</span> <span class="str">"🗑️  Deleting: $rg"</span>
+  az group delete --name <span class="var">$rg</span> --yes --no-wait
+<span class="kw">done</span>
+
+<span class="fn">echo</span> <span class="str">"✅ All lab resources queued for deletion (runs in background ~15-20 min)"</span>
+<span class="fn">echo</span> <span class="str">"   Monitor: az group list --query \"[?starts_with(name,'rg-entbcdr')]\""</span></code></div>
+    </div>
+
+    <!-- FINAL VALIDATION CHECKLIST -->
+    <div class="card" style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.3);margin-top:20px">
+      <div class="card-title" style="color:#f59e0b">🏆 Enterprise Lab Completion Checklist</div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><span class="check-icon">✓</span>Private DNS zones created and linked to both primary and DR VNets</li>
+          <li><span class="check-icon">✓</span>AKS clusters deployed with zone-redundancy and workload identity</li>
+          <li><span class="check-icon">✓</span>App Services VNet-integrated with private endpoints</li>
+          <li><span class="check-icon">✓</span>SQL Auto-Failover Group active — single listener endpoint confirmed</li>
+          <li><span class="check-icon">✓</span>Redis geo-replication active — DR is geo-secondary</li>
+          <li><span class="check-icon">✓</span>Azure Front Door Premium with sub-15s failover (5s probe × 3)</li>
+          <li><span class="check-icon">✓</span>Logic App workflow deployed and tested with dry-run</li>
+          <li><span class="check-icon">✓</span>Azure Monitor alert → Logic App webhook wired and tested</li>
+          <li><span class="check-icon">✓</span>Chaos Studio experiment executed — parallel AKS + App Service faults</li>
+          <li><span class="check-icon">✓</span>Auto-failover triggered and completed within RTO target</li>
+          <li><span class="check-icon">✓</span>Failback executed — all services confirmed back on primary</li>
+          <li><span class="check-icon">✓</span>Full validation suite: all checks passing</li>
+          <li><span class="check-icon warn">⚠</span>Post-lab report written with measured RTO/RPO vs targets</li>
+          <li><span class="check-icon warn">⚠</span>Lab resources cleaned up to avoid unnecessary charges</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px"><button onclick="completeEPhase(8)" class="ep-complete-btn">Mark Phase 8 Complete ✓</button></div>
+    <div id="ep-all-complete" style="display:none;background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(52,211,153,0.08));border:1px solid rgba(245,158,11,0.4);border-radius:12px;padding:32px;text-align:center;margin-top:24px">
+      <div style="font-size:48px;margin-bottom:16px">🏆</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:#f59e0b;margin-bottom:10px">Enterprise Lab Complete!</div>
+      <div style="color:var(--text-dim);font-size:14px;max-width:560px;margin:0 auto 24px;line-height:1.7">You've deployed a production-grade, fully-automated, multi-region BCDR environment on Azure — and validated it with live chaos injection and complete failover/failback. You're ready for real enterprise BCDR responsibilities.</div>
+      <button onclick="showPage('quiz')" style="padding:12px 28px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#34d399);color:white;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Take Final Assessment →</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- PHASE NAV BUTTONS -->
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+    <button onclick="showEPhase(1)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P1: Network</button>
+    <button onclick="showEPhase(2)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P2: AKS/App</button>
+    <button onclick="showEPhase(3)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P3: SQL/Redis</button>
+    <button onclick="showEPhase(4)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P4: Front Door</button>
+    <button onclick="showEPhase(5)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P5: Logic Apps</button>
+    <button onclick="showEPhase(6)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P6: Chaos</button>
+    <button onclick="showEPhase(7)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P7: Failback</button>
+    <button onclick="showEPhase(8)" style="padding:8px 14px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">P8: Validate</button>
+  </div>
+
+</div>
+</div>
+
 <!-- ════════════════════════════════ QUIZ ════════════════════════════════ -->
 <div id="page-quiz" class="page">
 <div class="container">
@@ -2061,8 +3351,8 @@ az monitor scheduled-query create \
 
 <script>
 // ── NAVIGATION ──────────────────────────────────────────────────────
-const pages = ['home','policy','architecture','services','automation','drills','projects','quiz'];
-const progress = { home:0, policy:14, architecture:28, services:42, automation:56, drills:70, projects:85, quiz:100 };
+const pages = ['home','policy','architecture','services','automation','drills','projects','enterprise','quiz'];
+const progress = { home:0, policy:12, architecture:24, services:36, automation:48, drills:60, projects:72, enterprise:88, quiz:100 };
 
 // ── PROJECTS ─────────────────────────────────────────────────────────
 const projectState = { 1: false, 2: false, 3: false, 4: false, 5: false };
@@ -2213,6 +3503,43 @@ function restartQuiz() {
   document.getElementById('quiz-container').style.display = 'block';
   document.getElementById('quizScore').style.display = 'none';
   renderQuestion();
+}
+
+// ── ENTERPRISE PHASE TRACKER ────────────────────────────────────────
+const ephaseState = { 1:false, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false };
+
+function showEPhase(num) {
+  document.querySelectorAll('.ephase-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('ephase-' + num).style.display = 'block';
+  for (let i = 1; i <= 8; i++) {
+    const b = document.getElementById('ep-badge-' + i);
+    if (!b) continue;
+    b.style.borderColor = i === num ? 'rgba(245,158,11,0.6)' : 'var(--border)';
+    b.style.boxShadow  = i === num ? '0 0 16px rgba(245,158,11,0.2)' : 'none';
+  }
+  window.scrollTo({ top: document.getElementById('page-enterprise').offsetTop + 200, behavior: 'smooth' });
+}
+
+function completeEPhase(num) {
+  ephaseState[num] = true;
+  const badge  = document.getElementById('ep-badge-' + num);
+  const status = document.getElementById('ep-status-' + num);
+  if (badge)  { badge.style.borderColor = 'rgba(52,211,153,0.5)'; badge.style.background = 'rgba(52,211,153,0.07)'; }
+  if (status) { status.textContent = '✓ DONE'; status.style.color = '#34d399'; }
+
+  const done = Object.values(ephaseState).filter(Boolean).length;
+  const pct  = Math.round((done / 8) * 100);
+  const prog = document.getElementById('epOverallProgress');
+  const pctEl = document.getElementById('epOverallPct');
+  if (prog)  prog.style.width  = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+
+  if (done === 8) {
+    const banner = document.getElementById('ep-all-complete');
+    if (banner) { banner.style.display = 'block'; banner.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  } else if (num < 8) {
+    setTimeout(() => showEPhase(num + 1), 500);
+  }
 }
 
 renderQuestion();
